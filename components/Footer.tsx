@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   return (
@@ -23,36 +24,57 @@ export default function Footer() {
       </div>
 
       {/* 하단 정보 */}
-      <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="grid gap-10 md:grid-cols-[260px_1fr]">
+      <div className="mx-auto max-w-6xl px-6 pt-6 pb-12">
+        <div className="grid gap-10 md:grid-cols-[260px_1fr] items-start">
           {/* 로고 영역 */}
-          <div className="opacity-70">
-            <div className="text-2xl font-bold">수능선배</div>
-            <div className="mt-2 text-xs text-white/60">
-              스파르타식 독학 재수 전문
+          <div className="opacity-70 flex items-center gap-3 ml-6">
+            <Image
+              src="/logo.png"
+              alt="로드맵"
+              width={48}
+              height={48}
+              className="flex-shrink-0"
+            />
+            <div className="flex flex-col leading-tight">
+              <span className="text-xs text-white/80">입시관리형 독서실</span>
+              <span className="font-bold text-3xl">로드맵</span>
             </div>
           </div>
 
-          {/* 사업자 정보 */}
-          <div className="text-sm leading-7 text-white/70">
-            <p>
-              <span className="text-white/60">대표자:</span> 고용범
-            </p>
-            <p>
-              <span className="text-white/60">수능선배 학원 (TEL:</span>{" "}
-              1668-5786<span className="text-white/60">)</span>
-            </p>
-            <p>
-              <span className="text-white/60">사업자번호:</span> 329-95-01774
-            </p>
-            <p>
-              <span className="text-white/60">학원등록번호:</span> 제14168호,
-              제8432호
-            </p>
-            <p>
-              <span className="text-white/60">주소:</span> 서울특별시 서초동
-              1330-12 5층 수능선배
-            </p>
+          {/* 사업자 정보 - 좌우 2관 */}
+          <div className="flex flex-col sm:flex-row gap-10 sm:gap-16 text-sm leading-7 text-white/70">
+            {/* N수관 */}
+            <div>
+              <p className="font-medium text-white/90">[N수관]</p>
+              <p>
+                <span className="text-white/60">대표자:</span> 장진웅
+              </p>
+              <p>
+                <span className="text-white/60">TEL:</span> 070-4833-5678
+              </p>
+              <p>
+                <span className="text-white/60">사업자번호:</span>
+              </p>
+              <p className="whitespace-nowrap">
+                <span className="text-white/60">주소:</span> 경기도 용인시 기흥구 동백중앙로 283 골드프라자 B동 10층
+              </p>
+            </div>
+            {/* 하이엔드관 */}
+            <div>
+              <p className="font-medium text-white/90">[하이엔드관]</p>
+              <p>
+                <span className="text-white/60">대표자:</span> 김현정
+              </p>
+              <p>
+                <span className="text-white/60">TEL:</span> 031-281-5678
+              </p>
+              <p>
+                <span className="text-white/60">사업자번호:</span>
+              </p>
+              <p className="whitespace-nowrap">
+                <span className="text-white/60">주소:</span> 경기도 용인시 기흥구 동백중앙로 283 골드프라자 A동 6층
+              </p>
+            </div>
           </div>
         </div>
       </div>
