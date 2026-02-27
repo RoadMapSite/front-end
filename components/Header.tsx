@@ -1,8 +1,8 @@
 'use client'
 
 import Link from "next/link";
-import { useEffect, useState } from 'react'
-import { usePathname } from 'next/navigation'
+import Image from "next/image";
+import { useState } from 'react'
 
 const communityItems = [
   { href: '/community/notice', label: '공지사항' },
@@ -12,51 +12,39 @@ const communityItems = [
 ]
 
 export default function Header() {
-  const pathname = usePathname()
-  const isHome = pathname === '/'
-  const [scrolled, setScrolled] = useState(false)
   const [openMobile, setOpenMobile] = useState(false)
   const [openCommunity, setOpenCommunity] = useState(false)
-  const [isMobile, setIsMobile] = useState<boolean | null>(null)
-  const solid =
-    isMobile === null
-      ? openMobile
-      : (!isMobile || !isHome || scrolled || openMobile)
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 1023px)') // lg 미만 = 모바일/태블릿
-    const apply = () => setIsMobile(mq.matches)
-    apply()
-    mq.addEventListener('change', apply)
-    return () => mq.removeEventListener('change', apply)
-  }, [])
 
   return (
     <>
-      <header
-        className={[
-          'fixed top-0 left-0 right-0 z-50 transition-colors duration-300',
-          solid
-            ? 'bg-white/95 backdrop-blur border-b border-gray-200 text-gray-900'
-            : 'bg-transparent text-white',
-        ].join(' ')}
-      >
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 text-gray-900">
         <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
           {/* 로고 */}
-          <Link href="/" className="font-bold text-xl">
-            수능선배
+          <Link href="/" className="flex items-center gap-3">
+            <Image
+              src="/logo.png"
+              alt="로드맵"
+              width={48}
+              height={48}
+              className="flex-shrink-0"
+              priority
+            />
+            <div className="flex flex-col leading-tight">
+              <span className="text-xs font-medium opacity-80">입시관리형 독서실</span>
+              <span className="font-bold text-3xl">로드맵</span>
+            </div>
           </Link>
 
           {/* 데스크탑 메뉴 */}
           <nav className="hidden lg:flex items-center gap-8">
-            <Link className={solid ? 'hover:text-blue-700' : 'hover:text-white/80'} href="/map">수능선배소개</Link>
-            <Link className={solid ? 'hover:text-blue-700' : 'hover:text-white/80'} href="/winter">2026 윈터스쿨</Link>
-            <Link className={solid ? 'hover:text-blue-700' : 'hover:text-white/80'} href="/mentor">담임멘토</Link>
-            <Link className={solid ? 'hover:text-blue-700' : 'hover:text-white/80'} href="/system">학습시스템</Link>
+            <Link className="hover:text-blue-700" href="/map">수능선배소개</Link>
+            <Link className="hover:text-blue-700" href="/winter">2026 윈터스쿨</Link>
+            <Link className="hover:text-blue-700" href="/mentor">담임멘토</Link>
+            <Link className="hover:text-blue-700" href="/system">학습시스템</Link>
 
             {/* 드롭다운 */}
             <div className="relative group">
-              <Link className={solid ? 'hover:text-blue-700' : 'hover:text-white/80'} href="/community">커뮤니티</Link>
+              <Link className="hover:text-blue-700" href="/community">커뮤니티</Link>
 
               <div className="absolute top-full left-1/2 -translate-x-1/2 hidden group-hover:block pt-6 z-50">
                 <div className="w-56 bg-white shadow-lg border border-gray-100 py-2 text-gray-900">
@@ -68,16 +56,13 @@ export default function Header() {
               </div>
             </div>
 
-            <Link className={solid ? 'hover:text-blue-700' : 'hover:text-white/80'} href="/inquiry">투자 문의</Link>
+            <Link className="hover:text-blue-700" href="/inquiry">투자 문의</Link>
           </nav>
 
           {/* 데스크탑 버튼 */}
           <Link
             href="/apply"
-            className={[
-              'hidden lg:inline-flex px-4 py-2 rounded-lg transition-colors',
-              solid ? 'bg-blue-800 text-white hover:bg-blue-900' : 'bg-white/15 text-white hover:bg-white/25 border border-white/30',
-            ].join(' ')}
+            className="hidden lg:inline-flex px-4 py-2 rounded-lg transition-colors bg-blue-800 text-white hover:bg-blue-900"
           >
             상담 신청하기
           </Link>
