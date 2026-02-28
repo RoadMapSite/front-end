@@ -1,7 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function Footer() {
+  const router = useRouter();
+
+  const handleTripleClick = (e: React.MouseEvent) => {
+    if (e.detail === 3) {
+      window.getSelection()?.removeAllRanges();
+      router.push("/admin/login");
+    }
+  };
+
   return (
     <footer className="bg-[#2f2f2f] text-gray-200">
       {/* 상단 링크 바 */}
@@ -47,7 +59,13 @@ export default function Footer() {
             <div>
               <p className="font-medium text-white/90">[N수관]</p>
               <p>
-                <span className="text-white/60">대표자:</span> 장진웅
+                <span className="text-white/60">대표자:</span>{" "}
+                <span
+                  onClick={handleTripleClick}
+                  className="cursor-default"
+                >
+                  장진웅
+                </span>
               </p>
               <p>
                 <span className="text-white/60">TEL:</span> 070-4833-5678
