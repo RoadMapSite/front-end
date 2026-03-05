@@ -1,4 +1,4 @@
-﻿import PageHero from "@/components/PageHero";
+import PageHero from "@/components/PageHero";
 import Image from "next/image";
 
 export default function NStudentTimetablePage() {
@@ -15,7 +15,7 @@ export default function NStudentTimetablePage() {
         ]}
       />
 
-      <section className="py-12">
+      <section className="bg-white py-12">
         <div className="mx-auto max-w-6xl px-6">
           <Image
             src="/images/about/n_timetable.png"
