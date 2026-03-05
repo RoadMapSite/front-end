@@ -97,9 +97,9 @@ export default function HomeSections() {
 
   return (
     <>
-      {/* Section 1: 명예의 전당 */}
-      <section ref={s1.ref} className={`pt-16 pb-28 md:pt-20 md:pb-32 transition-all duration-700 ${s1.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`} style={{ backgroundColor: "#0a1e32", marginTop: 0 }}>
-        <div className="mx-auto max-w-6xl px-6">
+      {/* Section 1: 명예의 전당 - 배경 고정, 제목과 이미지만 모션 */}
+      <section ref={s1.ref} className="pt-16 pb-28 md:pt-20 md:pb-32" style={{ backgroundColor: "#0a1e32", marginTop: 0 }}>
+        <div className={`mx-auto max-w-6xl px-6 transition-all duration-700 ${s1.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
           <h2 className="mb-12 text-center text-4xl font-bold text-white md:text-5xl">
             <span className="block">ROADMAP은</span>
             <span className="block">실적으로 증명합니다</span>
