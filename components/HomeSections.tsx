@@ -102,29 +102,48 @@ export default function HomeSections() {
 
   return (
     <>
-      {/* Section 1: 명예의 전당 - 배경 고정, 제목과 이미지만 모션 */}
+      {/* Section 1: 명예의 전당 - 사르르 등장 */}
       <section ref={s1.ref} className="pt-16 pb-28 md:pt-20 md:pb-32" style={{ backgroundColor: "#0a1e32", marginTop: 0 }}>
-        <div className={`mx-auto max-w-6xl px-6 transition-all duration-700 ${s1.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-          <h2 className="mb-12 text-center text-4xl font-bold text-white md:text-5xl">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2
+            className="mb-12 text-center text-4xl font-bold text-white md:text-5xl transition-all duration-700 ease-out"
+            style={{
+              opacity: s1.isVisible ? 1 : 0,
+              transform: s1.isVisible ? "translateY(0)" : "translateY(24px)",
+            }}
+          >
             <span className="block">ROADMAP은</span>
             <span className="block">실적으로 증명합니다</span>
           </h2>
-          <div className="mx-auto flex max-w-4xl justify-center">
+          <div
+            className="mx-auto flex max-w-4xl justify-center transition-all duration-700 ease-out"
+            style={{
+              opacity: s1.isVisible ? 1 : 0,
+              transform: s1.isVisible ? "translateY(0)" : "translateY(20px)",
+              transitionDelay: s1.isVisible ? "120ms" : "0ms",
+            }}
+          >
             <Image
               src="/images/chart.jpg"
               alt="명예의 전당"
               width={1200}
               height={800}
-              className="w-full h-auto"
+              className="w-full h-auto rounded-lg shadow-xl"
             />
           </div>
         </div>
       </section>
 
-      {/* Section 2: 차별화 포인트 */}
-      <section ref={s2.ref} className={`bg-[#ebecee] py-24 md:py-32 transition-all duration-700 ${s2.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+      {/* Section 2: 차별화 포인트 - 사르르 등장 */}
+      <section ref={s2.ref} className="bg-[#ebecee] py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="mb-16 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl lg:text-5xl">
+          <h2
+            className="mb-16 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl lg:text-5xl transition-all duration-700 ease-out"
+            style={{
+              opacity: s2.isVisible ? 1 : 0,
+              transform: s2.isVisible ? "translateY(0)" : "translateY(24px)",
+            }}
+          >
             <span className="block">일반 관리형 독서실과</span>
             <span className="block mt-2">이런 점이 다릅니다</span>
           </h2>
@@ -132,7 +151,12 @@ export default function HomeSections() {
             {DIFF_CARDS.map((card, i) => (
               <div
                 key={i}
-                className="rounded-2xl border border-emerald-200 bg-white p-8 transition-all duration-300 hover:-translate-y-2 hover:border-emerald-400 hover:shadow-xl"
+                className="rounded-2xl border border-emerald-200 bg-white p-8 transition-all duration-700 ease-out hover:-translate-y-2 hover:border-emerald-400 hover:shadow-xl"
+                style={{
+                  opacity: s2.isVisible ? 1 : 0,
+                  transform: s2.isVisible ? "translateY(0)" : "translateY(20px)",
+                  transitionDelay: s2.isVisible ? `${120 + i * 100}ms` : "0ms",
+                }}
               >
                 <Image
                   src={card.icon}
@@ -149,19 +173,32 @@ export default function HomeSections() {
         </div>
       </section>
 
-      {/* Section 3: 관별 시설 소개 (지그재그 레이아웃, Full Bleed 배경) */}
-      <section ref={s3.ref} className={`overflow-hidden bg-white py-24 pb-40 md:py-32 md:pb-44 transition-all duration-700 ${s3.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+      {/* Section 3: 관별 시설 소개 - 사르르 등장 */}
+      <section ref={s3.ref} className="overflow-hidden bg-white py-24 pb-40 md:py-32 md:pb-44">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="mb-28 text-center text-3xl font-bold leading-tight text-gray-900 md:mb-32 md:text-4xl lg:text-5xl">
+          <h2
+            className="mb-28 text-center text-3xl font-bold leading-tight text-gray-900 md:mb-32 md:text-4xl lg:text-5xl transition-all duration-700 ease-out"
+            style={{
+              opacity: s3.isVisible ? 1 : 0,
+              transform: s3.isVisible ? "translateY(0)" : "translateY(24px)",
+            }}
+          >
             <span className="block">학생의 유형에 따라</span>
             <span className="mt-2 block">2개의 관에서 최적의 학습을 할 수 있습니다</span>
           </h2>
         </div>
 
-        {/* 콘텐츠 중앙 래퍼 (max-w-6xl mx-auto) */}
+        {/* 콘텐츠 중앙 래퍼 */}
         <div className="mx-auto max-w-6xl px-6">
-          {/* Row 1: N수관 - Full Bleed 파랑/보라 배경 (왼쪽 화면 끝까지) */}
-          <div className="relative mb-16 py-8 md:mb-20 md:py-10">
+          {/* Row 1: N수관 */}
+          <div
+            className="relative mb-16 py-8 md:mb-20 md:py-10 transition-all duration-700 ease-out"
+            style={{
+              opacity: s3.isVisible ? 1 : 0,
+              transform: s3.isVisible ? "translateY(0)" : "translateY(20px)",
+              transitionDelay: s3.isVisible ? "120ms" : "0ms",
+            }}
+          >
             <div
               className="absolute inset-y-0 right-0 -z-10 hidden rounded-r-full bg-indigo-50 md:block"
               style={{ left: "calc(-50vw + 50%)" }}
@@ -179,8 +216,15 @@ export default function HomeSections() {
             </div>
           </div>
 
-          {/* Row 2: 고2·고3 전용관 - Full Bleed 로즈/빨강 배경 (오른쪽 화면 끝까지) */}
-          <div className="relative py-8 md:py-10">
+          {/* Row 2: 고2·고3 전용관 */}
+          <div
+            className="relative py-8 md:py-10 transition-all duration-700 ease-out"
+            style={{
+              opacity: s3.isVisible ? 1 : 0,
+              transform: s3.isVisible ? "translateY(0)" : "translateY(20px)",
+              transitionDelay: s3.isVisible ? "240ms" : "0ms",
+            }}
+          >
             <div
               className="absolute inset-y-0 left-0 -z-10 hidden rounded-l-full bg-rose-50 md:block"
               style={{ right: "calc(-50vw + 50%)" }}
@@ -200,8 +244,15 @@ export default function HomeSections() {
         </div>
       </section>
 
-      {/* Section 4: 오시는 길 (네이버 지도 단일 레이아웃) */}
-      <div ref={s4.ref} className={`transition-all duration-700 ${s4.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+      {/* Section 4: 오시는 길 - 사르르 등장 */}
+      <div
+        ref={s4.ref}
+        className="transition-all duration-700 ease-out"
+        style={{
+          opacity: s4.isVisible ? 1 : 0,
+          transform: s4.isVisible ? "translateY(0)" : "translateY(24px)",
+        }}
+      >
         <NaverMapSection />
       </div>
     </>
