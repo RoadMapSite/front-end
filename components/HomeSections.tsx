@@ -21,17 +21,35 @@ const H_FACILITIES = [
 const DIFF_CARDS = [
   {
     title: "실시간 밀착 관리",
-    desc: "20분·30분 단위 순찰이 아닌, 학업 전 과정을 초 단위로 실시간 관리합니다.",
+    desc: (
+      <>
+        20분·30분 단위 순찰이 아닌
+        <br />
+        학업 전 과정을 초 단위로 실시간 관리합니다.
+      </>
+    ),
     icon: "/images/icon-care.png",
   },
   {
     title: "체계적인 데이터 관리",
-    desc: "출결사항 및 의무학습 내 관리 내역들을 데이터화하며, 주간 학습 리포트로 정리하여 매주 월요일에 제공합니다.",
+    desc: (
+      <>
+        출결사항 및 의무학습 내 관리 내역들을 데이터화하며
+        <br />
+        주간 학습 리포트로 정리하여 매주 월요일에 제공합니다.
+      </>
+    ),
     icon: "/images/icon-data.png",
   },
   {
     title: "1:1 맞춤 케어",
-    desc: "ROADMAP 학습 컨설팅 전문 선생님과 학업, 입시, 멘탈 관련 1:1 학업 상담을 경험할 수 있습니다.",
+    desc: (
+      <>
+        ROADMAP 학습 컨설팅 전문 선생님과
+        <br />
+        학업, 입시, 멘탈 관련 1:1 학업 상담을 경험할 수 있습니다.
+      </>
+    ),
     icon: "/images/icon-consult.png",
   },
 ];
@@ -138,7 +156,7 @@ export default function HomeSections() {
 
       {/* Section 2: 차별화 포인트 - 사르르 등장 */}
       <section ref={s2.ref} className="bg-[#ebecee] py-24 md:py-32">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto w-full max-w-screen-2xl px-4 md:px-6">
           <h2
             className="mb-16 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl lg:text-5xl transition-all duration-700 ease-out"
             style={{
@@ -149,11 +167,11 @@ export default function HomeSections() {
             <span className="block">일반 관리형 독서실과</span>
             <span className="block mt-2">이런 점이 다릅니다</span>
           </h2>
-          <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-12">
+          <div className="grid w-full grid-cols-1 gap-10 md:grid-cols-3 md:gap-10">
             {DIFF_CARDS.map((card, i) => (
               <div
                 key={i}
-                className="rounded-2xl border border-emerald-200 bg-white p-8 transition-all duration-700 ease-out hover:-translate-y-2 hover:border-emerald-400 hover:shadow-xl"
+                className="flex h-auto flex-col items-center justify-center rounded-2xl border border-emerald-200 border-b-4 border-b-emerald-700 bg-white px-8 py-12 transition-all duration-700 ease-out hover:-translate-y-2 hover:border-emerald-400 hover:shadow-xl"
                 style={{
                   opacity: s2.isVisible ? 1 : 0,
                   transform: s2.isVisible ? "translateY(0)" : "translateY(20px)",
@@ -165,10 +183,10 @@ export default function HomeSections() {
                   alt={card.title}
                   width={160}
                   height={160}
-                  className="mx-auto mb-8 h-32 w-32 object-contain md:h-40 md:w-40"
+                  className="mb-6 h-32 w-32 object-contain md:h-40 md:w-40"
                 />
                 <h3 className="mb-4 text-center text-xl font-bold text-emerald-700">{card.title}</h3>
-                <p className="text-center text-gray-600 leading-relaxed">{card.desc}</p>
+                <p className="break-keep text-center text-gray-600 leading-relaxed">{card.desc}</p>
               </div>
             ))}
           </div>
@@ -236,7 +254,7 @@ export default function HomeSections() {
               <div className="order-2 flex flex-[2] flex-col justify-center md:order-1 md:pl-4 md:pr-6">
                 <h3 className="text-2xl font-bold text-gray-900 md:text-3xl">고2·고3 전용관</h3>
                 <p className="mt-3 text-base text-gray-700 md:text-lg">고2·고3 현역 학생들을 위한 공간입니다</p>
-                <p className="mt-2 text-sm leading-relaxed text-gray-500">학기 중에는 하교 시간에 맞춰 16시부터 1시까지 운영되며, 방학기간에는 09:30부터 21:50까지 의무학습으로 진행됩니다.</p>
+                <p className="mt-2 text-sm leading-relaxed text-gray-500">학기 중에는 하교 시간에 맞춰 16시부터 1시까지 운영되며, 방학기간에는 09:30부터 21:50까지 의무학습으로 진행됩니다</p>
               </div>
               <div className="order-1 min-w-0 flex-[3] md:order-2">
                 <FadeSlider facilities={H_FACILITIES} initialDelayMs={SLIDER_INTERVAL_MS / 2} />
