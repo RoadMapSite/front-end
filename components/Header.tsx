@@ -67,7 +67,7 @@ const infoMenus: Menu[] = [
   },
   {
     label: '명예의 전당',
-    href: '/hall-of-fame/upload',
+    href: '/hall-of-fame',
   },
   {
     label: '이용 후기',

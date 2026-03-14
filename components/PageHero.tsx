@@ -63,7 +63,7 @@ export default function PageHero({
       <div className={`border-b bg-white ${breadcrumbWrapClassName}`}>
         <div className="mx-auto max-w-6xl px-6 py-4 text-sm text-gray-600 flex flex-wrap items-center gap-x-2 gap-y-1">
           <Link href="/" className="inline-flex items-center justify-center shrink-0 hover:text-gray-900" aria-label="홈">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="shrink-0 block" aria-hidden>
               <path
                 d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-10.5z"
                 stroke="currentColor"
@@ -76,7 +76,7 @@ export default function PageHero({
           {crumbs.map((c, idx) => {
             const label = displayCrumbLabel(c.label);
             return (
-              <span key={`${c.label}-${idx}`} className="inline-flex items-center gap-2">
+              <span key={`${c.label}-${idx}`} className="inline-flex items-center gap-2 translate-y-[2px]">
                 <span className="text-gray-300 shrink-0">{">"}</span>
                 {c.href ? (
                   <Link href={c.href} className="inline-flex items-center hover:text-gray-900">
