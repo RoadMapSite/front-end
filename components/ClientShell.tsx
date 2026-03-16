@@ -15,11 +15,9 @@ export default function ClientShell({
   const isAdmin = pathname?.startsWith("/admin");
 
   useEffect(() => {
-    if (pathname === "/") {
-      const hash = window.location.hash?.slice(1);
-      if (hash) return; // 해시가 있으면 HashScrollHandler가 처리하므로 상단 스크롤 생략
-      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-    }
+    const hash = window.location.hash?.slice(1);
+    if (hash) return; // 해시가 있으면 HashScrollHandler가 처리하므로 상단 스크롤 생략
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname]);
 
   if (isAdmin) {

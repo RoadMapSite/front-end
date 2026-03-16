@@ -18,8 +18,8 @@ export default function MentoringSongPage() {
       <section className="py-12">
         <div className="mx-auto max-w-6xl px-6">
           <Image
-            src="/images/about/songT.jpg"
-            alt="송의준 선생님"
+            src="/images/about/t_introduction.png"
+            alt="송의준 선생님 소개"
             width={1920}
             height={1080}
             className="mx-auto h-auto w-full max-w-3xl"

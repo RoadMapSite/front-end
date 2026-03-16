@@ -38,7 +38,7 @@ export default function AboutTeacherPage() {
         "육군사관학교 필기 시험 합격",
         "정시 일반 전형 한의대, 약대 합격",
       ],
-      photo: null,
+      photo: "/images/about/의준T.jpg",
       accent: "bg-slate-700",
     },
   ];
