@@ -7,7 +7,7 @@ import { LayoutDashboard, Calendar, Users, MessageSquare } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 const notoSansKr = Noto_Sans_KR({
-  subsets: ["latin", "korean"],
+  subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-noto-sans-kr",
 });
