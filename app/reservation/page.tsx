@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import PageHero from "@/components/PageHero";
 
 type Season = "SEMESTER_1" | "SEMESTER_2" | "SUMMER" | "WINTER";
 type Branch = "N" | "Hi-end";
@@ -9,8 +8,8 @@ type Branch = "N" | "Hi-end";
 const SEASON_OPTIONS: { value: Season; label: string }[] = [
   { value: "SEMESTER_1", label: "1학기" },
   { value: "SEMESTER_2", label: "2학기" },
-  { value: "SUMMER", label: "여름시즌" },
-  { value: "WINTER", label: "겨울시즌" },
+  { value: "SUMMER", label: "여름캠프" },
+  { value: "WINTER", label: "겨울캠프" },
 ];
 
 const BRANCH_OPTIONS: { value: Branch; label: string }[] = [
@@ -211,33 +210,27 @@ export default function ReservationPage() {
 
   return (
     <main>
-      <PageHero
-        imageUrl="/images/place/n/n_p8.jpg"
-        lines={["등록 예약"]}
-        crumbs={[{ label: "등록 예약", href: "/reservation" }]}
-      />
-
       <section className="w-full py-12 md:py-16">
-        <div className="mx-auto max-w-md px-6">
+        <div className="mx-auto max-w-xl px-6">
           {/* 타이틀 */}
-          <div className="text-center mb-12">
-            <p className="text-gray-500 text-sm md:text-base mb-1">1분 안에</p>
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900">등록 예약 해드릴게요!</h2>
+          <div className="text-center mb-16">
+            <p className="text-gray-500 text-base md:text-lg mb-1">1분 안에</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">등록 예약 해드릴게요!</h2>
           </div>
 
           {/* 시즌 선택 */}
           <div className="mb-10">
-            <h3 className="text-gray-900 font-medium mb-2">시즌을 선택해주세요</h3>
+            <h3 className="text-gray-900 font-medium text-base mb-2">시즌을 선택해주세요</h3>
             <hr className="border-gray-200 mb-4" />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
               {SEASON_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
                   onClick={() => handleSeasonChange(opt.value)}
-                  className={`py-3 px-4 rounded-lg border text-sm font-medium transition-colors ${
+                  className={`cursor-pointer py-3 px-6 rounded-lg border text-base font-medium transition-colors ${
                     season === opt.value
-                      ? "bg-green-600 text-white border-green-600"
+                      ? "bg-slate-800 text-white border-slate-800 hover:bg-slate-700"
                       : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
                   }`}
                 >
@@ -250,17 +243,17 @@ export default function ReservationPage() {
           {/* 관 종류 (1학기/2학기 선택 시에만) */}
           {showBranchSelection && (
             <div className="mb-10">
-              <h3 className="text-gray-900 font-medium mb-2">관 종류를 선택해주세요</h3>
+              <h3 className="text-gray-900 font-medium text-base mb-2">관 종류를 선택해주세요</h3>
               <hr className="border-gray-200 mb-4" />
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {BRANCH_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     type="button"
                     onClick={() => setBranch(opt.value)}
-                    className={`py-3 px-4 rounded-lg border text-sm font-medium transition-colors ${
+                    className={`cursor-pointer py-3 px-6 rounded-lg border text-base font-medium transition-colors ${
                       branch === opt.value
-                        ? "bg-green-600 text-white border-green-600"
+                        ? "bg-slate-800 text-white border-slate-800 hover:bg-slate-700"
                         : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
                     }`}
                   >
@@ -273,16 +266,16 @@ export default function ReservationPage() {
 
           {/* 간단한 정보 */}
           <form onSubmit={handleSubmit}>
-            <h3 className="text-gray-700 font-medium text-base mb-1.5">간단한 정보만 적어주세요</h3>
+            <h3 className="text-gray-900 font-medium text-base mb-2">간단한 정보만 적어주세요</h3>
             <hr className="border-gray-100 mb-3" />
 
-            <div className="space-y-3 mb-5">
+            <div className="space-y-4 mb-6">
               <input
                 type="text"
                 placeholder="이름을 적어주세요"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full py-2.5 px-3.5 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
+                className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
               />
               <input
                 type="number"
@@ -291,7 +284,7 @@ export default function ReservationPage() {
                 placeholder="나이를 입력해주세요"
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
-                className="w-full py-2.5 px-3.5 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
+                className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
               />
               <div className="flex rounded-xl border border-gray-200 overflow-hidden bg-gray-50/50">
                 <input
@@ -299,13 +292,13 @@ export default function ReservationPage() {
                   placeholder="핸드폰번호를 적어주세요"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="flex-1 py-2.5 px-3.5 border-0 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-0 bg-transparent"
+                  className="flex-1 py-3 px-4 border-0 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-0 bg-transparent"
                 />
                 <button
                   type="button"
                   onClick={handleSendVerification}
                   disabled={sendCodeLoading}
-                  className="shrink-0 py-2.5 px-3.5 bg-gray-100 text-gray-600 text-sm font-medium hover:bg-gray-200 whitespace-nowrap border-l border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="shrink-0 cursor-pointer py-3 px-5 bg-gray-100 text-gray-600 text-base font-medium hover:bg-gray-200 whitespace-nowrap border-l border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {sendCodeLoading ? "발송 중…" : "인증번호 받기"}
                 </button>
@@ -321,7 +314,7 @@ export default function ReservationPage() {
                   setVerificationToken(null);
                 }}
                 disabled={phoneVerified}
-                className="w-full py-2.5 px-3.5 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50 disabled:bg-gray-50 disabled:text-gray-500"
+                className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50 disabled:bg-gray-50 disabled:text-gray-500"
               />
               {verifyError && <p className="text-sm text-red-600">{verifyError}</p>}
               {verificationSent && (
@@ -330,12 +323,12 @@ export default function ReservationPage() {
                     type="button"
                     onClick={handleVerifyCode}
                     disabled={phoneVerified || verifyLoading || !verificationCode.trim()}
-                    className="py-2.5 px-3.5 rounded-xl border border-gray-200 bg-gray-100 text-gray-600 text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    className="cursor-pointer py-3 px-5 rounded-xl border border-gray-200 bg-gray-100 text-gray-600 text-base font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                   >
                     {phoneVerified ? "인증 완료" : verifyLoading ? "확인 중…" : "인증하기"}
                   </button>
                   {phoneVerified && (
-                    <p className="text-xs text-green-600 font-medium">휴대폰 번호가 인증되었습니다.</p>
+                    <p className="text-sm text-slate-600 font-medium">휴대폰 번호가 인증되었습니다.</p>
                   )}
                 </div>
               )}
@@ -344,7 +337,7 @@ export default function ReservationPage() {
             <button
               type="submit"
               disabled={isSubmitting || !canSubmit}
-              className="w-full py-3 rounded-xl bg-gray-700 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full cursor-pointer py-4 rounded-xl bg-gray-700 text-white text-base font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               등록 신청
             </button>

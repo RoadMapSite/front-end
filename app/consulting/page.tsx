@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import PageHero from "@/components/PageHero";
 
 type Branch = "N" | "Hi-end";
 
@@ -9,6 +8,9 @@ const BRANCH_OPTIONS: { value: Branch; label: string }[] = [
   { value: "N", label: "N수생관" },
   { value: "Hi-end", label: "하이엔드관" },
 ];
+
+const MORNING_SLOTS = ["10:00", "11:00"];
+const AFTERNOON_SLOTS = ["12:00", "14:00", "15:00", "16:00", "17:00"];
 
 /** API 응답: 월별 상담 가능 스케줄 */
 interface ConsultationsScheduleResponse {
@@ -203,10 +205,15 @@ export default function ConsultingPage() {
     [calendarMonth]
   );
 
+  const MOCK_TIMES = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"];
+
   const availableTimesForDate = useMemo(() => {
-    if (!selectedDate || !scheduleData?.availableSchedules) return [];
-    const found = scheduleData.availableSchedules.find((s) => s.date === selectedDate);
-    return found?.availableTimes ?? [];
+    if (!selectedDate) return [];
+    if (scheduleData?.availableSchedules) {
+      const found = scheduleData.availableSchedules.find((s) => s.date === selectedDate);
+      if (found?.availableTimes?.length) return found.availableTimes;
+    }
+    return MOCK_TIMES;
   }, [selectedDate, scheduleData]);
 
   const hasSlots = selectedDate && availableTimesForDate.length > 0;
@@ -284,25 +291,19 @@ export default function ConsultingPage() {
 
   return (
     <main>
-      <PageHero
-        imageUrl="/images/place/n/n_p8.jpg"
-        lines={["상담 신청"]}
-        crumbs={[{ label: "상담 신청", href: "/consulting" }]}
-      />
-
       <section className="w-full py-12 md:py-16">
-        <div className="mx-auto max-w-md px-6">
+        <div className="mx-auto max-w-xl px-6">
           {/* 타이틀 */}
-          <div className="text-center mb-12">
-            <p className="text-gray-500 text-sm md:text-base mb-1">1분 안에</p>
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900">상담 예약 해드릴게요!</h2>
+          <div className="text-center mb-16">
+            <p className="text-gray-500 text-base md:text-lg mb-1">1분 안에</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">상담 예약 해드릴게요!</h2>
           </div>
 
           {/* 관 종류 */}
           <div className="mb-10">
-            <h3 className="text-gray-900 font-medium mb-2">관 종류를 선택해주세요</h3>
+            <h3 className="text-gray-900 font-medium text-base mb-2">관 종류를 선택해주세요</h3>
             <hr className="border-gray-200 mb-4" />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {BRANCH_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
@@ -312,9 +313,9 @@ export default function ConsultingPage() {
                 setSelectedDate(null);
                 setSelectedTime(null);
               }}
-                  className={`py-3 px-4 rounded-lg border text-sm font-medium transition-colors ${
+                  className={`cursor-pointer py-3 px-6 rounded-lg border text-base font-medium transition-colors ${
                     branch === opt.value
-                      ? "bg-green-600 text-white border-green-600"
+                      ? "bg-slate-800 text-white border-slate-800 hover:bg-slate-700"
                       : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
                   }`}
                 >
@@ -326,54 +327,54 @@ export default function ConsultingPage() {
 
           {/* 날짜·시간 선택 */}
           <div className="mb-10">
-            <h3 className="text-gray-900 font-medium mb-2">상담을 원하는 시간을 선택해주세요</h3>
+            <h3 className="text-gray-900 font-medium text-base mb-2">상담을 원하는 시간을 선택해주세요</h3>
             <hr className="border-gray-200 mb-4" />
 
             {scheduleError && (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 mb-4">
+              <div className="rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-base text-red-700 mb-4">
                 {scheduleError}
               </div>
             )}
             {branch && scheduleLoading && (
-              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 mb-4">
+              <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 text-base text-gray-600 mb-4">
                 스케줄을 불러오는 중…
               </div>
             )}
             {/* 캘린더 */}
-            <div className="border border-gray-200 rounded-lg p-4 mb-4">
+            <div className="border border-gray-200 rounded-xl p-5 mb-4">
               <div className="flex items-center justify-between mb-4">
                 <button
                   type="button"
                   onClick={handlePrevMonth}
-                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
+                  className="cursor-pointer p-3 rounded-lg hover:bg-gray-100 text-gray-600"
                   aria-label="이전 달"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-base font-medium text-gray-900">
                   {calendarMonth.getFullYear()}년 {calendarMonth.getMonth() + 1}월
                 </span>
                 <button
                   type="button"
                   onClick={handleNextMonth}
-                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
+                  className="cursor-pointer p-3 rounded-lg hover:bg-gray-100 text-gray-600"
                   aria-label="다음 달"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
               </div>
-              <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 mb-2">
+              <div className="grid grid-cols-7 gap-1 text-center text-sm text-gray-500 mb-2">
                 {["일", "월", "화", "수", "목", "금", "토"].map((w, i) => (
                   <span key={w} className={i === 0 ? "text-red-500" : ""}>
                     {w}
                   </span>
                 ))}
               </div>
-              <div className="grid grid-cols-7 gap-1">
+              <div className="grid grid-cols-7 gap-2">
                 {calendarDays.map(({ date, isCurrentMonth, dateStr }) => {
                   const isSelected = selectedDate === dateStr;
                   const isPast = dateStr < todayStr;
@@ -389,11 +390,11 @@ export default function ConsultingPage() {
                         setSelectedDate(dateStr);
                         setSelectedTime(null);
                       }}
-                      className={`aspect-square min-w-[2.25rem] w-full max-w-10 flex items-center justify-center rounded-full text-sm transition-colors ${
+                      className={`aspect-square min-w-[2.5rem] w-full max-w-12 flex items-center justify-center rounded-full text-base transition-colors ${
                         !isCurrentMonth ? "text-gray-300" : isSunday ? "text-red-500" : "text-gray-900"
-                      } ${disabled ? "cursor-not-allowed opacity-50" : "hover:bg-gray-100"} ${
-                        isSelected ? "bg-green-600 text-white hover:bg-green-700" : ""
-                      }`}
+                      } ${disabled || !isCurrentMonth ? "cursor-default" : "cursor-pointer hover:bg-gray-100"} ${
+                        disabled ? "opacity-50" : ""
+                      } ${isSelected ? "bg-slate-800 text-white hover:bg-slate-700" : ""}`}
                     >
                       {date.getDate()}
                     </button>
@@ -403,7 +404,7 @@ export default function ConsultingPage() {
             </div>
 
             {selectedDate && !hasSlots && (
-              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 mb-4">
+              <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 text-base text-gray-600 mb-4">
                 {!branch ? (
                   <>관을 먼저 선택해 주세요.</>
                 ) : selectedDate === todayStr ? (
@@ -423,30 +424,67 @@ export default function ConsultingPage() {
             )}
 
             {selectedDate && hasSlots && (
-              <div className="rounded-2xl border border-gray-200 p-4">
-                <p className="text-sm font-medium text-gray-700 mb-2">예약 가능 시간</p>
-                <div className="grid grid-cols-4 gap-2">
-                  {availableTimesForDate.map((t) => {
-                    const isSelected = selectedTime === t;
-                    return (
-                      <button
-                        key={t}
-                        type="button"
-                        onClick={() => setSelectedTime(t)}
-                        className={`py-2 rounded-2xl text-sm border transition-colors ${
-                          isSelected
-                            ? "border-green-600 bg-green-600 text-white"
-                            : "border-gray-200 bg-gray-200 text-gray-800 hover:bg-gray-300"
-                        }`}
-                      >
-                        {t}
-                      </button>
-                    );
-                  })}
+              <div className="rounded-2xl border border-gray-200 p-5">
+                <div className="space-y-5">
+                  <div>
+                    <p className="text-base font-semibold text-gray-800 mb-2">오전</p>
+                    <div className="grid grid-cols-4 gap-3">
+                      {MORNING_SLOTS.map((t) => {
+                        const isAvailable = availableTimesForDate.includes(t);
+                        const isSelected = selectedTime === t;
+                        return (
+                          <button
+                            key={t}
+                            type="button"
+                            disabled={!isAvailable}
+                            onClick={() => isAvailable && setSelectedTime(t)}
+                            className={`py-3 rounded-2xl text-base border transition-colors ${
+                              !isAvailable
+                                ? "cursor-not-allowed border-gray-200 bg-white text-gray-400"
+                                : isSelected
+                                  ? "cursor-pointer border-slate-800 bg-slate-800 text-white hover:bg-slate-700"
+                                  : "cursor-pointer border-gray-200 bg-gray-200 text-gray-800 hover:bg-gray-300"
+                            }`}
+                          >
+                            {t}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-base font-semibold text-gray-800 mb-2">오후</p>
+                    <div className="grid grid-cols-4 gap-3">
+                      {AFTERNOON_SLOTS.map((t) => {
+                        const isAvailable = availableTimesForDate.includes(t);
+                        const isSelected = selectedTime === t;
+                        return (
+                          <button
+                            key={t}
+                            type="button"
+                            disabled={!isAvailable}
+                            onClick={() => isAvailable && setSelectedTime(t)}
+                            className={`py-3 rounded-2xl text-base border transition-colors ${
+                              !isAvailable
+                                ? "cursor-not-allowed border-gray-200 bg-white text-gray-400"
+                                : isSelected
+                                  ? "cursor-pointer border-slate-800 bg-slate-800 text-white hover:bg-slate-700"
+                                  : "cursor-pointer border-gray-200 bg-gray-200 text-gray-800 hover:bg-gray-300"
+                            }`}
+                          >
+                            {t}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-4 text-sm text-gray-500 mt-4 pt-4 border-t border-gray-100 justify-end">
+                <div className="flex gap-4 text-base text-gray-500 mt-4 pt-4 border-t border-gray-100 justify-end">
                   <span className="flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-md bg-green-600" /> 선택
+                    <span className="w-4 h-4 rounded-md border border-gray-200 bg-gray-200" /> 가능
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-4 h-4 rounded-md border border-gray-200 bg-white" /> 불가능
                   </span>
                 </div>
               </div>
@@ -455,16 +493,16 @@ export default function ConsultingPage() {
 
           {/* 간단한 정보 */}
           <form onSubmit={handleSubmit}>
-            <h3 className="text-gray-700 font-medium text-base mb-1.5">간단한 정보만 적어주세요</h3>
+            <h3 className="text-gray-900 font-medium text-base mb-2">간단한 정보만 적어주세요</h3>
             <hr className="border-gray-100 mb-3" />
 
-            <div className="space-y-3 mb-5">
+            <div className="space-y-4 mb-6">
               <input
                 type="text"
                 placeholder="이름을 적어주세요"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full py-2.5 px-3.5 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
+                className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
               />
               <input
                 type="number"
@@ -473,7 +511,7 @@ export default function ConsultingPage() {
                 placeholder="나이를 입력해주세요"
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
-                className="w-full py-2.5 px-3.5 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
+                className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
               />
               <div className="flex rounded-xl border border-gray-200 overflow-hidden bg-gray-50/50">
                 <input
@@ -481,13 +519,13 @@ export default function ConsultingPage() {
                   placeholder="핸드폰번호를 적어주세요"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="flex-1 py-2.5 px-3.5 border-0 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-0 bg-transparent"
+                  className="flex-1 py-3 px-4 border-0 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-0 bg-transparent"
                 />
                 <button
                   type="button"
                   onClick={handleSendVerification}
                   disabled={sendCodeLoading}
-                  className="shrink-0 py-2.5 px-3.5 bg-gray-100 text-gray-600 text-sm font-medium hover:bg-gray-200 whitespace-nowrap border-l border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="shrink-0 cursor-pointer py-3 px-5 bg-gray-100 text-gray-600 text-base font-medium hover:bg-gray-200 whitespace-nowrap border-l border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {sendCodeLoading ? "발송 중…" : "인증번호 받기"}
                 </button>
@@ -505,7 +543,7 @@ export default function ConsultingPage() {
                   setVerificationToken(null);
                 }}
                 disabled={phoneVerified}
-                className="w-full py-2.5 px-3.5 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50 disabled:bg-gray-50 disabled:text-gray-500"
+                className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50 disabled:bg-gray-50 disabled:text-gray-500"
               />
               {verifyError && (
                 <p className="text-sm text-red-600">{verifyError}</p>
@@ -516,12 +554,12 @@ export default function ConsultingPage() {
                     type="button"
                     onClick={handleVerifyCode}
                     disabled={phoneVerified || verifyLoading || !verificationCode.trim()}
-                    className="py-2.5 px-3.5 rounded-xl border border-gray-200 bg-gray-100 text-gray-600 text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    className="cursor-pointer py-3 px-5 rounded-xl border border-gray-200 bg-gray-100 text-gray-600 text-base font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                   >
                     {phoneVerified ? "인증 완료" : verifyLoading ? "확인 중…" : "인증하기"}
                   </button>
                   {phoneVerified && (
-                    <p className="text-xs text-green-600 font-medium">휴대폰 번호가 인증되었습니다.</p>
+                    <p className="text-sm text-slate-600 font-medium">휴대폰 번호가 인증되었습니다.</p>
                   )}
                 </div>
               )}
@@ -540,7 +578,7 @@ export default function ConsultingPage() {
                 !phoneVerified ||
                 !verificationToken
               }
-              className="w-full py-3 rounded-xl bg-gray-700 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full cursor-pointer py-4 rounded-xl bg-gray-700 text-white text-base font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               신청서 제출
             </button>
