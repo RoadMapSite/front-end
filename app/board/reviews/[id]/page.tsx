@@ -26,19 +26,14 @@ export default async function ReviewDetailPage({ params, searchParams }: Props) 
   }
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-slate-50">
+    <main className="min-h-screen overflow-x-hidden bg-white">
       <PageHero
-        imageUrl=""
+        imageUrl="/images/place/n/n_p17.jpg"
+        heroStyle={{ backgroundPosition: "center 48%" }}
         lines={["이용 후기"]}
         crumbs={[
-          { label: "게시판" },
           { label: "이용 후기", href: "/board/reviews" },
         ]}
-        heightClass="h-[200px] lg:h-[240px]"
-        heroClassName="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800"
-        overlayClassName="opacity-0"
-        titleClassName="text-white text-xl lg:text-4xl font-bold tracking-tight"
-        breadcrumbWrapClassName="border-slate-200 bg-white"
       />
 
       <section className="mx-auto max-w-3xl px-4 sm:px-6 py-10 lg:py-14">
@@ -78,7 +73,7 @@ export default async function ReviewDetailPage({ params, searchParams }: Props) 
           </div>
 
           {/* 목록으로 */}
-          <div className="border-t border-slate-100 bg-slate-50/50 px-5 py-5 sm:px-8 sm:py-6 lg:px-10">
+          <div className="flex justify-center border-t border-slate-100 bg-slate-50/50 px-5 py-5 sm:px-8 sm:py-6 lg:px-10">
             <Link
               href={from === "mine" ? "/board/reviews/mine" : "/board/reviews"}
               className="inline-flex items-center gap-2 rounded-xl bg-slate-800 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-slate-700 hover:shadow"

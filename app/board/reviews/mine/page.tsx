@@ -126,7 +126,7 @@ function StatusBadge({ status }: { status: ReviewStatus }) {
 
 // 개발용 미리보기 샘플 데이터 (인증 없이 화면 확인용)
 const DEV_MOCK_REVIEWS: MyReview[] = [
-  { reviewId: 1, branch: "N수생관", title: "독학재수학원 이용 후기 (샘플)", authorName: "홍길동", status: "PENDING", createdAt: "2026-03-10T00:00:00Z" },
+  { reviewId: 1, branch: "N수관", title: "독학재수학원 이용 후기 (샘플)", authorName: "홍길동", status: "PENDING", createdAt: "2026-03-10T00:00:00Z" },
   { reviewId: 2, branch: "하이엔드관", title: "수업 품질이 좋았어요 (샘플)", authorName: "김철수", status: "APPROVED", createdAt: "2026-03-08T00:00:00Z" },
 ];
 
@@ -230,30 +230,25 @@ export default function MyReviewsPage() {
   }, [phoneVerified, verificationToken]);
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-slate-50">
+    <main className="min-h-screen overflow-x-hidden bg-white">
       <PageHero
-        imageUrl=""
-        lines={["내가 작성한 후기"]}
+        imageUrl="/images/place/n/n_p17.jpg"
+        heroStyle={{ backgroundPosition: "center 48%" }}
+        lines={["내가 작성한 후기 조회"]}
         crumbs={[
-          { label: "게시판" },
           { label: "이용 후기", href: "/board/reviews" },
-          { label: "내가 작성한 후기", href: "/board/reviews/mine" },
+          { label: "내가 작성한 후기 조회", href: "/board/reviews/mine" },
         ]}
-        heightClass="h-[200px] lg:h-[240px]"
-        heroClassName="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800"
-        overlayClassName="opacity-0"
-        titleClassName="text-white text-xl lg:text-4xl font-bold tracking-tight"
-        breadcrumbWrapClassName="border-slate-200 bg-white"
       />
 
       <section className="mx-auto max-w-5xl px-4 sm:px-6 py-10 lg:py-14">
         {!phoneVerified ? (
           <div className="mx-auto max-w-md">
-            <div className="mb-8 text-center">
-              <p className="text-slate-500 text-sm mb-1">휴대폰 인증 후</p>
-              <h2 className="text-xl font-bold text-slate-900">내가 작성한 후기를 확인할 수 있어요</h2>
-            </div>
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200/60">
+            <h2 className="mb-16 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl">
+              <span className="block whitespace-nowrap">휴대폰 인증 후</span>
+              <span className="block whitespace-nowrap -translate-x-7">내가 작성한 후기를 확인할 수 있어요</span>
+            </h2>
+            <div className="mt-2 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200/60">
               <div className="space-y-3">
                 <div className="flex rounded-xl border border-slate-200 overflow-hidden bg-gray-50/50">
                   <input
@@ -297,7 +292,7 @@ export default function MyReviewsPage() {
                   <button
                     type="button"
                     onClick={handleDevPreview}
-                    className="w-full py-2.5 rounded-xl border border-dashed border-amber-300 bg-amber-50/50 text-amber-700 text-sm font-medium hover:bg-amber-50"
+                    className="w-full py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm font-medium hover:bg-slate-100"
                   >
                     개발용: 인증 건너뛰고 미리보기
                   </button>
@@ -322,7 +317,7 @@ export default function MyReviewsPage() {
             <p className="text-slate-600">아직 작성한 후기가 없어요.</p>
             <Link
               href="/board/reviews/register"
-              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500"
+              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-slate-700 hover:shadow"
             >
               후기 작성하기
             </Link>
@@ -367,12 +362,12 @@ export default function MyReviewsPage() {
                 </div>
               ))}
             </div>
-            <div className="hidden lg:block overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60">
+            <div className="mt-16 hidden lg:block overflow-hidden bg-white shadow-sm ring-1 ring-slate-200/60">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/80">
+                  <tr className="border-b border-slate-200 bg-white">
                     <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      순번
+                      번호
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
                       관 종류
@@ -445,10 +440,10 @@ export default function MyReviewsPage() {
           </>
         ) : null}
 
-        <div className="mt-8 text-center">
+        <div className="mt-24 mx-auto max-w-md px-6">
           <Link
             href="/board/reviews"
-            className="text-sm text-slate-500 hover:text-slate-700"
+            className="block w-full py-2.5 rounded-xl bg-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-300 transition-colors text-center"
           >
             이용 후기 목록으로 돌아가기
           </Link>

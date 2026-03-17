@@ -15,7 +15,7 @@ export const reviewPosts: ReviewPost[] = [
   {
     id: 1,
     category: "우수후기",
-    branch: "N수생관",
+    branch: "N수관",
     isTop: true,
     title: "독학재수학원 <강남점> 이용 후기",
     author: "조민",
@@ -57,7 +57,7 @@ export const reviewPosts: ReviewPost[] = [
   {
     id: 3,
     category: "일반",
-    branch: "N수생관",
+    branch: "N수관",
     title: "분위기가 좋아서 집중이 잘 돼요",
     author: "백소미",
     createdAt: "2025.02.21",

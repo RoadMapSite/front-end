@@ -6,8 +6,8 @@ export default function HeroSection() {
   return (
     <section
       style={{
-        height: "calc(100vh - 64px)",
-        minHeight: "calc(100vh - 64px)",
+        height: "100vh",
+        minHeight: "100vh",
         position: "relative",
         overflow: "hidden",
       }}
@@ -69,7 +69,7 @@ export default function HeroSection() {
         </h1>
       </div>
 
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center">
+      <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center">
         <div className="hero-chevron select-none">
           <ChevronDown
             className="w-12 h-12 text-white drop-shadow-md md:w-14 md:h-14"

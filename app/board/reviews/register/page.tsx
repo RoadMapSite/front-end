@@ -7,7 +7,7 @@ import PageHero from "@/components/PageHero";
 type Branch = "N" | "Hi-end";
 
 const BRANCH_OPTIONS: { value: Branch; label: string }[] = [
-  { value: "N", label: "N수생관" },
+  { value: "N", label: "N수관" },
   { value: "Hi-end", label: "하이엔드관" },
 ];
 
@@ -199,43 +199,38 @@ export default function ReviewRegisterPage() {
     verificationToken;
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-slate-50">
+    <main className="min-h-screen overflow-x-hidden bg-white">
       <PageHero
-        imageUrl=""
+        imageUrl="/images/place/n/n_p17.jpg"
+        heroStyle={{ backgroundPosition: "center 48%" }}
         lines={["이용 후기 작성"]}
         crumbs={[
-          { label: "게시판" },
           { label: "이용 후기", href: "/board/reviews" },
           { label: "후기 작성", href: "/board/reviews/register" },
         ]}
-        heightClass="h-[200px] lg:h-[240px]"
-        heroClassName="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800"
-        overlayClassName="opacity-0"
-        titleClassName="text-white text-xl lg:text-4xl font-bold tracking-tight"
-        breadcrumbWrapClassName="border-slate-200 bg-white"
       />
 
-      <section className="mx-auto max-w-md px-4 sm:px-6 py-10 lg:py-14">
-        <div className="mb-10 text-center">
-          <p className="text-gray-500 text-sm mb-1">솔직한 후기를 남겨주세요</p>
-          <h2 className="text-xl font-bold text-gray-900">이용 후기 작성</h2>
-        </div>
+      <section className="mx-auto max-w-xl px-4 sm:px-6 py-10 lg:py-14">
+        <h2 className="mb-24 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl">
+          <span className="block">로드맵의 솔직한 후기를 남겨주세요</span>
+          <span className="block whitespace-nowrap -translate-x-8">관리자 승인 후 이용 후기 목록에 등록됩니다</span>
+        </h2>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* 관 선택 */}
           <div>
-            <h3 className="text-gray-900 font-medium mb-2">관 종류를 선택해주세요</h3>
+            <h3 className="text-gray-900 font-medium text-base mb-2">관 종류를 선택해주세요</h3>
             <hr className="border-gray-200 mb-4" />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {BRANCH_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
                   onClick={() => setBranch(opt.value)}
-                  className={`py-3 px-4 rounded-lg border text-sm font-medium transition-colors ${
+                  className={`cursor-pointer py-2.5 px-6 rounded-lg border text-base font-medium transition-colors ${
                     branch === opt.value
-                      ? "bg-emerald-600 text-white border-emerald-600"
-                      : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
+                      ? "bg-slate-800 text-white border-slate-800 hover:bg-slate-700"
+                      : "bg-white text-gray-600 border-gray-300 hover:border-gray-400 hover:bg-slate-50"
                   }`}
                 >
                   {opt.label}
@@ -246,14 +241,14 @@ export default function ReviewRegisterPage() {
 
           {/* 제목 */}
           <div>
-            <h3 className="text-gray-900 font-medium mb-2">제목</h3>
+            <h3 className="text-gray-900 font-medium text-base mb-2">제목</h3>
             <hr className="border-gray-200 mb-4" />
             <input
               type="text"
               placeholder="제목을 입력해주세요"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full py-2.5 px-3.5 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
+              className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
             />
           </div>
 
@@ -266,13 +261,13 @@ export default function ReviewRegisterPage() {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={8}
-              className="w-full py-2.5 px-3.5 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50 resize-none"
+              className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50 resize-none"
             />
           </div>
 
           {/* 이미지 업로드 */}
           <div>
-            <h3 className="text-gray-900 font-medium mb-2">사진 첨부 (선택)</h3>
+            <h3 className="text-gray-900 font-medium text-base mb-2">사진 첨부 (선택)</h3>
             <hr className="border-gray-200 mb-4" />
             <div className="space-y-3">
               <div className="flex flex-wrap gap-3">
@@ -281,7 +276,7 @@ export default function ReviewRegisterPage() {
                     <img
                       src={url}
                       alt={`미리보기 ${i + 1}`}
-                      className="h-24 w-24 object-cover rounded-lg border border-gray-200"
+                      className="h-28 w-28 object-cover rounded-lg border border-gray-200"
                     />
                     <button
                       type="button"
@@ -293,7 +288,7 @@ export default function ReviewRegisterPage() {
                   </div>
                 ))}
                 {imagePreviews.length < MAX_IMAGES && (
-                  <label className="h-24 w-24 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-gray-500 hover:bg-gray-100 cursor-pointer text-xs">
+                  <label className="h-28 w-28 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-gray-500 hover:bg-gray-100 cursor-pointer text-sm">
                     <span>+</span>
                     <span>추가</span>
                     <input
@@ -306,13 +301,13 @@ export default function ReviewRegisterPage() {
                   </label>
                 )}
               </div>
-              <p className="text-xs text-gray-500">최대 {MAX_IMAGES}장, 5MB 이하 (jpg, png, gif)</p>
+              <p className="text-sm text-gray-500">최대 {MAX_IMAGES}장, 5MB 이하 (jpg, png, gif)</p>
             </div>
           </div>
 
           {/* 이름, 휴대폰, 인증 */}
           <div>
-            <h3 className="text-gray-700 font-medium text-base mb-1.5">본인 확인</h3>
+            <h3 className="text-gray-900 font-medium text-base mb-2">본인 확인</h3>
             <hr className="border-gray-100 mb-3" />
 
             <div className="space-y-3">
@@ -321,7 +316,7 @@ export default function ReviewRegisterPage() {
                 placeholder="이름을 입력해주세요"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full py-2.5 px-3.5 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
+                className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
               />
               <div className="flex rounded-xl border border-gray-200 overflow-hidden bg-gray-50/50">
                 <input
@@ -329,13 +324,13 @@ export default function ReviewRegisterPage() {
                   placeholder="휴대폰 번호를 입력해주세요"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="flex-1 py-2.5 px-3.5 border-0 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-0 bg-transparent"
+                  className="flex-1 py-3 px-4 border-0 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-0 bg-transparent"
                 />
                 <button
                   type="button"
                   onClick={handleSendVerification}
                   disabled={sendCodeLoading}
-                  className="shrink-0 py-2.5 px-3.5 bg-gray-100 text-gray-600 text-sm font-medium hover:bg-gray-200 whitespace-nowrap border-l border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="shrink-0 py-3 px-5 bg-gray-100 text-gray-600 text-base font-medium hover:bg-gray-200 whitespace-nowrap border-l border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {sendCodeLoading ? "발송 중…" : "인증번호 받기"}
                 </button>
@@ -351,7 +346,7 @@ export default function ReviewRegisterPage() {
                   setVerificationToken(null);
                 }}
                 disabled={phoneVerified}
-                className="w-full py-2.5 px-3.5 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50 disabled:bg-gray-50 disabled:text-gray-500"
+                className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50 disabled:bg-gray-50 disabled:text-gray-500"
               />
               {verifyError && <p className="text-sm text-red-600">{verifyError}</p>}
               {verificationSent && (
@@ -360,7 +355,7 @@ export default function ReviewRegisterPage() {
                     type="button"
                     onClick={handleVerifyCode}
                     disabled={phoneVerified || verifyLoading || !verificationCode.trim()}
-                    className="py-2.5 px-3.5 rounded-xl border border-gray-200 bg-gray-100 text-gray-600 text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    className="py-3 px-5 rounded-xl border border-gray-200 bg-gray-100 text-gray-600 text-base font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                   >
                     {phoneVerified ? "인증 완료" : verifyLoading ? "확인 중…" : "인증하기"}
                   </button>
@@ -375,14 +370,17 @@ export default function ReviewRegisterPage() {
           <button
             type="submit"
             disabled={isSubmitting || !canSubmit}
-            className="w-full py-3 rounded-xl bg-slate-700 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-4 rounded-xl bg-slate-700 text-white text-base font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? "등록 중…" : "후기 등록"}
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <Link href="/board/reviews" className="text-sm text-gray-500 hover:text-gray-700">
+        <div className="mt-4 text-center">
+          <Link
+            href="/board/reviews"
+            className="block w-full py-4 rounded-xl bg-slate-200 text-slate-700 text-base font-medium hover:bg-slate-300 transition-colors text-center"
+          >
             목록으로 돌아가기
           </Link>
         </div>

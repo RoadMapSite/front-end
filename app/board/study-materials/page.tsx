@@ -58,19 +58,14 @@ export default function StudyMaterialsPage() {
   };
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-slate-50">
+    <main className="min-h-screen overflow-x-hidden bg-white">
       <PageHero
-        imageUrl=""
+        imageUrl="/images/place/n/n_p8.jpg"
         lines={["학업자료"]}
         crumbs={[
           { label: "게시판" },
           { label: "학업자료", href: "/board/study-materials" },
         ]}
-        heightClass="h-[200px] lg:h-[240px]"
-        heroClassName="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800"
-        overlayClassName="opacity-0"
-        titleClassName="text-white text-xl lg:text-4xl font-bold tracking-tight"
-        breadcrumbWrapClassName="border-slate-200 bg-white"
       />
 
       <section className="mx-auto max-w-5xl px-4 sm:px-6 py-10 lg:py-14">
@@ -121,11 +116,11 @@ export default function StudyMaterialsPage() {
         </div>
 
         {/* 데스크톱: 테이블 */}
-        <div className="hidden lg:block overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60">
+        <div className="hidden lg:block overflow-hidden bg-white shadow-sm ring-1 ring-slate-200/60">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/80">
+                <tr className="border-b border-slate-200 bg-white">
                   <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
                     순번
                   </th>
