@@ -99,7 +99,7 @@ function FadeSlider({ facilities, initialDelayMs = 0 }: { facilities: { name: st
   }, [facilities.length, initialDelayMs]);
 
   return (
-    <div className="relative aspect-[16/10] min-h-[200px] overflow-hidden rounded-xl shadow-lg">
+    <div className="relative aspect-[16/10] min-h-[200px] overflow-hidden shadow-lg">
       {facilities.map((f, i) => (
         <div
           key={f.image}
@@ -225,8 +225,8 @@ export default function HomeSections() {
             }}
           >
             <div
-              className="absolute inset-y-0 right-0 -z-10 hidden rounded-r-full bg-indigo-50 md:block"
-              style={{ left: "calc(-50vw + 50%)" }}
+              className="absolute inset-y-0 right-0 -z-10 hidden rounded-r-full md:block"
+              style={{ left: "calc(-50vw + 50%)", backgroundColor: "#E2E8F0" }}
               aria-hidden
             />
             <div className="relative flex flex-col gap-12 md:flex-row md:items-center md:gap-12 md:pr-16">
@@ -234,9 +234,9 @@ export default function HomeSections() {
                 <FadeSlider facilities={N_FACILITIES} />
               </div>
               <div className="flex flex-[2] flex-col justify-center md:pl-6 md:pr-4">
-                <h3 className="text-2xl font-bold text-gray-900 md:text-3xl">N수생 전용관</h3>
-                <p className="mt-3 text-base text-gray-700 md:text-lg">N수생들을 위한 공간입니다</p>
-                <p className="mt-2 text-sm leading-relaxed text-gray-500">
+                <h3 className="text-2xl font-bold md:text-3xl" style={{ color: "#111827" }}>N수생 전용관</h3>
+                <p className="mt-3 text-base md:text-lg" style={{ color: "#111827" }}>N수생들을 위한 공간입니다</p>
+                <p className="mt-2 text-sm leading-relaxed" style={{ color: "#111827" }}>
                   3월 오픈부터 수능 전날까지 변동 없이 운영되며
                   <br />
                   08:30부터 21:50까지 의무학습으로 진행됩니다
@@ -255,15 +255,15 @@ export default function HomeSections() {
             }}
           >
             <div
-              className="absolute inset-y-0 left-0 -z-10 hidden rounded-l-full bg-rose-50 md:block"
-              style={{ right: "calc(-50vw + 50%)" }}
+              className="absolute inset-y-0 left-0 -z-10 hidden rounded-l-full md:block"
+              style={{ right: "calc(-50vw + 50%)", backgroundColor: "#F5F5F0" }}
               aria-hidden
             />
             <div className="relative flex flex-col gap-12 md:flex-row md:items-center md:gap-12 md:pl-16">
               <div className="order-2 flex flex-[2] flex-col justify-center md:order-1 md:pl-4 md:pr-6">
-                <h3 className="text-2xl font-bold text-gray-900 md:text-3xl">고2·고3 전용관</h3>
-                <p className="mt-3 text-base text-gray-700 md:text-lg">고2·고3 현역 학생들을 위한 공간입니다</p>
-                <p className="mt-2 text-sm leading-relaxed text-gray-500">
+                <h3 className="text-2xl font-bold md:text-3xl" style={{ color: "#111827" }}>고2·고3 전용관</h3>
+                <p className="mt-3 text-base md:text-lg" style={{ color: "#111827" }}>고2·고3 현역 학생들을 위한 공간입니다</p>
+                <p className="mt-2 text-sm leading-relaxed" style={{ color: "#111827" }}>
                   학기 중에는 하교 시간에 맞춰 16시부터 1시까지 운영되며
                   <br />
                   방학 기간에는 09:30부터 21:50까지 의무학습으로 진행됩니다
