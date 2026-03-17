@@ -1,9 +1,9 @@
 "use client";
 
 import PageHero from "@/components/PageHero";
+import { useFadeIn } from "@/hooks/useFadeIn";
 import { studyMaterials } from "./data";
-import { Download, FileText, FileSpreadsheet, FileImage, File, BookOpen } from "lucide-react";
-import { useState } from "react";
+import { Download, FileText, FileSpreadsheet, FileImage, File } from "lucide-react";
 
 function getFileExtension(url: string): string {
   const match = url.match(/\.([a-zA-Z0-9]+)(?:\?|$)/);
@@ -12,8 +12,6 @@ function getFileExtension(url: string): string {
 
 function FileTypeDisplay({ url, title }: { url: string; title: string }) {
   const ext = getFileExtension(url);
-  const extLabel = ext ? `.${ext}` : "";
-  const fileName = extLabel ? `${title}${extLabel}` : title;
 
   const iconMap: Record<string, { icon: typeof FileText; color: string }> = {
     pdf: { icon: FileText, color: "text-red-600" },
@@ -36,49 +34,37 @@ function FileTypeDisplay({ url, title }: { url: string; title: string }) {
   return (
     <span className="inline-flex items-center gap-2">
       <Icon className={`h-5 w-5 shrink-0 ${color}`} aria-hidden />
-      <span className="font-medium text-slate-800">{fileName}</span>
+      <span className="font-medium text-slate-800">{title}</span>
     </span>
   );
 }
 
 export default function StudyMaterialsPage() {
-  const [downloadCounts, setDownloadCounts] = useState<Record<number, number>>(
-    () =>
-      Object.fromEntries(
-        studyMaterials.map((m) => [m.id, m.downloadCount])
-      ) as Record<number, number>
-  );
-
-  const handleDownload = (item: (typeof studyMaterials)[0]) => {
-    setDownloadCounts((prev) => ({
-      ...prev,
-      [item.id]: (prev[item.id] ?? item.downloadCount) + 1,
-    }));
-    window.open(item.downloadUrl, "_blank", "noopener,noreferrer");
-  };
-
+  const fade = useFadeIn(0.1);
   return (
     <main className="min-h-screen overflow-x-hidden bg-white">
       <PageHero
-        imageUrl="/images/place/n/n_p8.jpg"
-        lines={["학업자료"]}
+        imageUrl="/images/place/n/n_p12.jpg"
+        heroStyle={{ backgroundPosition: "center 55%" }}
+        lines={["학업 자료 게시판"]}
         crumbs={[
-          { label: "게시판" },
-          { label: "학업자료", href: "/board/study-materials" },
+          { label: "학업 자료 게시판" },
         ]}
       />
 
-      <section className="mx-auto max-w-5xl px-4 sm:px-6 py-10 lg:py-14">
-        {/* 인트로 */}
-        <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
-            <BookOpen className="h-5 w-5" strokeWidth={2} />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-slate-800">학습 자료 다운로드</h2>
-            <p className="text-sm text-slate-500">수능 준비에 필요한 자료를 무료로 받아보세요.</p>
-          </div>
-        </div>
+      <section
+        ref={fade.ref}
+        className="mx-auto max-w-5xl px-4 sm:px-6 py-10 lg:py-14 transition-all duration-700 ease-out"
+        style={{
+          opacity: fade.isVisible ? 1 : 0,
+          transform: fade.isVisible ? "translateY(0)" : "translateY(24px)",
+        }}
+      >
+        {/* 인트로 타이틀 */}
+        <h2 className="mb-16 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl">
+          <span className="block">로드맵 선생님들이 정리한</span>
+          <span className="block">수능 준비에 필요한 자료를 무료로 받아보세요</span>
+        </h2>
 
         {/* 모바일·태블릿: 카드 리스트 */}
         <div className="lg:hidden space-y-3">
@@ -95,19 +81,18 @@ export default function StudyMaterialsPage() {
                   <div className="mb-4">
                     <FileTypeDisplay url={item.downloadUrl} title={item.title} />
                   </div>
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs text-slate-500">
-                      다운로드 {downloadCounts[item.id] ?? item.downloadCount}회
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleDownload(item)}
+                  <div className="flex justify-end">
+                    <a
+                      href={item.downloadUrl}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all active:scale-[0.98] hover:bg-emerald-500"
-                      aria-label={`${item.title} 다운로드`}
+                      aria-label={`${item.title} 다운받기`}
                     >
                       <Download className="h-4 w-4" />
-                      다운로드
-                    </button>
+                      다운받기
+                    </a>
                   </div>
                 </div>
               </div>
@@ -122,16 +107,13 @@ export default function StudyMaterialsPage() {
               <thead>
                 <tr className="border-b border-slate-200 bg-white">
                   <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    순번
+                    번호
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                     자료 제목
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    다운로드
-                  </th>
-                  <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    다운로드 횟수
+                    다운받기
                   </th>
                 </tr>
               </thead>
@@ -149,18 +131,17 @@ export default function StudyMaterialsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex justify-center">
-                        <button
-                          type="button"
-                          onClick={() => handleDownload(item)}
+                        <a
+                          href={item.downloadUrl}
+                          download
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-slate-600 shadow-sm transition-all hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
-                          aria-label={`${item.title} 다운로드`}
+                          aria-label={`${item.title} 다운받기`}
                         >
                           <Download className="h-4 w-4" aria-hidden />
-                        </button>
+                        </a>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 text-center text-sm text-slate-500">
-                      {downloadCounts[item.id] ?? item.downloadCount}
                     </td>
                   </tr>
                 ))}

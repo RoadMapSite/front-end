@@ -5,6 +5,7 @@ import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import BranchBadge from "../BranchBadge";
 import { Trash2 } from "lucide-react";
+import { useFadeIn } from "@/hooks/useFadeIn";
 
 type ReviewStatus = "PENDING" | "APPROVED";
 
@@ -216,6 +217,8 @@ export default function MyReviewsPage() {
     }
   };
 
+  const fade = useFadeIn(0.1);
+
   const handleDevPreview = () => {
     setVerificationToken("dev-token");
     setPhoneVerified(true);
@@ -241,7 +244,14 @@ export default function MyReviewsPage() {
         ]}
       />
 
-      <section className="mx-auto max-w-5xl px-4 sm:px-6 py-10 lg:py-14">
+      <section
+        ref={fade.ref}
+        className="mx-auto max-w-5xl px-4 sm:px-6 py-10 lg:py-14 transition-all duration-700 ease-out"
+        style={{
+          opacity: fade.isVisible ? 1 : 0,
+          transform: fade.isVisible ? "translateY(0)" : "translateY(24px)",
+        }}
+      >
         {!phoneVerified ? (
           <div className="mx-auto max-w-md">
             <h2 className="mb-16 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl">
@@ -443,7 +453,7 @@ export default function MyReviewsPage() {
         <div className="mt-24 mx-auto max-w-md px-6">
           <Link
             href="/board/reviews"
-            className="block w-full py-2.5 rounded-xl bg-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-300 transition-colors text-center"
+            className="block w-full py-2.5 rounded-xl bg-slate-800 text-white text-sm font-medium hover:bg-slate-700 transition-colors text-center"
           >
             이용 후기 목록으로 돌아가기
           </Link>

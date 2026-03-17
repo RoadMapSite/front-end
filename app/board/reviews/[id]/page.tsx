@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageHero from "@/components/PageHero";
+import FadeInSection from "@/components/FadeInSection";
 import { getReviewPostById } from "../data";
 import BranchBadge from "../BranchBadge";
 import { ArrowLeft, Eye } from "lucide-react";
@@ -36,7 +37,7 @@ export default async function ReviewDetailPage({ params, searchParams }: Props) 
         ]}
       />
 
-      <section className="mx-auto max-w-3xl px-4 sm:px-6 py-10 lg:py-14">
+      <FadeInSection className="mx-auto max-w-3xl px-4 sm:px-6 py-10 lg:py-14">
         <article className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60">
           {/* 헤더 */}
           <header className="border-b border-slate-100 bg-white px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
@@ -83,7 +84,7 @@ export default async function ReviewDetailPage({ params, searchParams }: Props) 
             </Link>
           </div>
         </article>
-      </section>
+      </FadeInSection>
     </main>
   );
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import PageHero from "@/components/PageHero";
+import { useFadeIn } from "@/hooks/useFadeIn";
 
 type Branch = "N" | "Hi-end";
 
@@ -198,6 +199,8 @@ export default function ReviewRegisterPage() {
     phoneVerified &&
     verificationToken;
 
+  const fade = useFadeIn(0.1);
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-white">
       <PageHero
@@ -210,7 +213,14 @@ export default function ReviewRegisterPage() {
         ]}
       />
 
-      <section className="mx-auto max-w-xl px-4 sm:px-6 py-10 lg:py-14">
+      <section
+        ref={fade.ref}
+        className="mx-auto max-w-xl px-4 sm:px-6 py-10 lg:py-14 transition-all duration-700 ease-out"
+        style={{
+          opacity: fade.isVisible ? 1 : 0,
+          transform: fade.isVisible ? "translateY(0)" : "translateY(24px)",
+        }}
+      >
         <h2 className="mb-24 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl">
           <span className="block">로드맵의 솔직한 후기를 남겨주세요</span>
           <span className="block whitespace-nowrap -translate-x-8">관리자 승인 후 이용 후기 목록에 등록됩니다</span>

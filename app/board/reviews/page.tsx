@@ -7,6 +7,7 @@ import { reviewPosts } from "./data";
 import type { ReviewPost } from "./data";
 import BranchBadge from "./BranchBadge";
 import { ChevronLeft, ChevronRight, Pin, Pencil } from "lucide-react";
+import { useFadeIn } from "@/hooks/useFadeIn";
 
 const ITEMS_PER_PAGE = 10;
 const BRANCH_OPTIONS = [
@@ -18,6 +19,7 @@ const BRANCH_OPTIONS = [
 export default function ReviewsPage() {
   const [branchFilter, setBranchFilter] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
+  const fade = useFadeIn(0.1);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -54,15 +56,28 @@ export default function ReviewsPage() {
         ]}
       />
 
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 py-10 lg:py-14">
+      <section ref={fade.ref} className="mx-auto max-w-7xl px-4 sm:px-6 py-10 lg:py-14">
         {/* 인트로 타이틀 (다른 페이지와 동일 스타일) */}
-        <h2 className="mb-8 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl">
+        <h2
+          className="mb-8 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl transition-all duration-700 ease-out"
+          style={{
+            opacity: fade.isVisible ? 1 : 0,
+            transform: fade.isVisible ? "translateY(0)" : "translateY(24px)",
+          }}
+        >
           <span className="block">로드맵을 이용한 학생들의</span>
           <span className="block">솔직한 경험을 확인해 보세요</span>
         </h2>
 
         {/* 관 선택 */}
-        <div className="mb-6 flex justify-end">
+        <div
+          className="mb-6 flex justify-end transition-all duration-700 ease-out"
+          style={{
+            opacity: fade.isVisible ? 1 : 0,
+            transform: fade.isVisible ? "translateY(0)" : "translateY(20px)",
+            transitionDelay: fade.isVisible ? "120ms" : "0ms",
+          }}
+        >
           <div className="flex shrink-0">
             <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white py-1.5 pl-4 pr-2 shadow-sm ring-1 ring-slate-200/50">
               <label htmlFor="branch-filter" className="text-sm font-medium text-slate-600">
@@ -85,7 +100,14 @@ export default function ReviewsPage() {
         </div>
 
         {/* 모바일·태블릿: 카드 리스트 */}
-        <div className="lg:hidden space-y-3">
+        <div
+          className="lg:hidden space-y-3 transition-all duration-700 ease-out"
+          style={{
+            opacity: fade.isVisible ? 1 : 0,
+            transform: fade.isVisible ? "translateY(0)" : "translateY(20px)",
+            transitionDelay: fade.isVisible ? "180ms" : "0ms",
+          }}
+        >
           {pagedPosts.map((post, index) => {
             const isPinned = post.isTop;
             const fullIndex = (currentPage - 1) * ITEMS_PER_PAGE + index;
@@ -130,7 +152,14 @@ export default function ReviewsPage() {
         </div>
 
         {/* 데스크톱: 테이블 */}
-        <div className="hidden lg:block overflow-hidden bg-white shadow-sm ring-1 ring-slate-200/60">
+        <div
+          className="hidden lg:block overflow-hidden bg-white shadow-sm ring-1 ring-slate-200/60 transition-all duration-700 ease-out"
+          style={{
+            opacity: fade.isVisible ? 1 : 0,
+            transform: fade.isVisible ? "translateY(0)" : "translateY(20px)",
+            transitionDelay: fade.isVisible ? "180ms" : "0ms",
+          }}
+        >
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -206,6 +235,14 @@ export default function ReviewsPage() {
 
         {/* 페이지네이션 */}
         {totalPages > 1 && (
+          <div
+            className="transition-all duration-700 ease-out"
+            style={{
+              opacity: fade.isVisible ? 1 : 0,
+              transform: fade.isVisible ? "translateY(0)" : "translateY(20px)",
+              transitionDelay: fade.isVisible ? "240ms" : "0ms",
+            }}
+          >
           <nav className="mt-8 flex items-center justify-center gap-1" aria-label="페이지 선택">
             <button
               type="button"
@@ -242,10 +279,18 @@ export default function ReviewsPage() {
               <ChevronRight className="h-4 w-4" />
             </button>
           </nav>
+          </div>
         )}
 
         {/* 내 후기 조회, 후기 작성 */}
-        <div className="mt-8 flex flex-wrap items-center justify-end gap-2">
+        <div
+          className="mt-8 flex flex-wrap items-center justify-end gap-2 transition-all duration-700 ease-out"
+          style={{
+            opacity: fade.isVisible ? 1 : 0,
+            transform: fade.isVisible ? "translateY(0)" : "translateY(20px)",
+            transitionDelay: fade.isVisible ? "300ms" : "0ms",
+          }}
+        >
           <Link
             href="/board/reviews/mine"
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 active:scale-[0.98]"
