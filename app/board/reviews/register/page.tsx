@@ -5,13 +5,6 @@ import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import { useFadeIn } from "@/hooks/useFadeIn";
 
-type Branch = "N" | "Hi-end";
-
-const BRANCH_OPTIONS: { value: Branch; label: string }[] = [
-  { value: "N", label: "N수관" },
-  { value: "Hi-end", label: "하이엔드관" },
-];
-
 function getApiBase(): string {
   if (typeof process === "undefined") return "";
   return process.env.NEXT_PUBLIC_CONSULT_API_BASE ?? "";
@@ -60,7 +53,6 @@ const MAX_IMAGES = 5;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export default function ReviewRegisterPage() {
-  const [branch, setBranch] = useState<Branch | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -141,7 +133,6 @@ export default function ReviewRegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
-      !branch ||
       !title.trim() ||
       !content.trim() ||
       !name.trim() ||
@@ -157,7 +148,6 @@ export default function ReviewRegisterPage() {
       const base = getApiBase();
       if (base) {
         const formData = new FormData();
-        formData.append("branch", branch);
         formData.append("title", title.trim());
         formData.append("content", content.trim());
         formData.append("name", name.trim());
@@ -191,7 +181,6 @@ export default function ReviewRegisterPage() {
   };
 
   const canSubmit =
-    branch &&
     title.trim() &&
     content.trim() &&
     name.trim() &&
@@ -221,34 +210,12 @@ export default function ReviewRegisterPage() {
           transform: fade.isVisible ? "translateY(0)" : "translateY(24px)",
         }}
       >
-        <h2 className="mb-24 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl">
+        <h2 className="mb-16 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl">
           <span className="block">로드맵의 솔직한 후기를 남겨주세요</span>
           <span className="block whitespace-nowrap -translate-x-8">관리자 승인 후 이용 후기 목록에 등록됩니다</span>
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* 관 선택 */}
-          <div>
-            <h3 className="text-gray-900 font-medium text-base mb-2">관 종류를 선택해주세요</h3>
-            <hr className="border-gray-200 mb-4" />
-            <div className="grid grid-cols-2 gap-4">
-              {BRANCH_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setBranch(opt.value)}
-                  className={`cursor-pointer py-2.5 px-6 rounded-lg border text-base font-medium transition-colors ${
-                    branch === opt.value
-                      ? "bg-slate-800 text-white border-slate-800 hover:bg-slate-700"
-                      : "bg-white text-gray-600 border-gray-300 hover:border-gray-400 hover:bg-slate-50"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* 제목 */}
           <div>
             <h3 className="text-gray-900 font-medium text-base mb-2">제목</h3>
