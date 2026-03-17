@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import PageHero from "@/components/PageHero";
 import FadeInSection from "@/components/FadeInSection";
 import { getReviewPostById } from "../data";
-import BranchBadge from "../BranchBadge";
 import { ArrowLeft, Eye } from "lucide-react";
 
 type Props = {
@@ -46,8 +45,6 @@ export default async function ReviewDetailPage({ params, searchParams }: Props) 
             </h1>
             <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500">
               <span className="font-medium text-slate-700">{post.author}</span>
-              <span className="text-slate-300">·</span>
-              <BranchBadge branch={post.branch} />
               <span className="text-slate-300">·</span>
               <span>{post.createdAt}</span>
               <span className="text-slate-300">·</span>

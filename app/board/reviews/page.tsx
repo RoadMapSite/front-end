@@ -1,43 +1,28 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import { reviewPosts } from "./data";
-import type { ReviewPost } from "./data";
-import BranchBadge from "./BranchBadge";
 import { ChevronLeft, ChevronRight, Pin, Pencil } from "lucide-react";
 import { useFadeIn } from "@/hooks/useFadeIn";
 
 const ITEMS_PER_PAGE = 10;
-const BRANCH_OPTIONS = [
-  { value: "", label: "전체" },
-  { value: "N수관", label: "N수관" },
-  { value: "하이엔드관", label: "하이엔드관" },
-] as const;
 
 export default function ReviewsPage() {
-  const [branchFilter, setBranchFilter] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const fade = useFadeIn(0.1);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [branchFilter]);
-
   const filteredAndSortedPosts = useMemo(() => {
-    let list = [...reviewPosts];
-    if (branchFilter) {
-      list = list.filter((post) => post.branch === branchFilter);
-    }
+    const list = [...reviewPosts];
     list.sort((a, b) => {
       const aTop = a.isTop ? 1 : 0;
       const bTop = b.isTop ? 1 : 0;
       if (aTop !== bTop) return bTop - aTop;
-      return 0;
+      return b.createdAt.localeCompare(a.createdAt);
     });
     return list;
-  }, [branchFilter]);
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(filteredAndSortedPosts.length / ITEMS_PER_PAGE));
   const pagedPosts = useMemo(() => {
@@ -59,7 +44,7 @@ export default function ReviewsPage() {
       <section ref={fade.ref} className="mx-auto max-w-7xl px-4 sm:px-6 py-10 lg:py-14">
         {/* 인트로 타이틀 (다른 페이지와 동일 스타일) */}
         <h2
-          className="mb-8 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl transition-all duration-700 ease-out"
+          className="mb-20 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl transition-all duration-700 ease-out"
           style={{
             opacity: fade.isVisible ? 1 : 0,
             transform: fade.isVisible ? "translateY(0)" : "translateY(24px)",
@@ -68,36 +53,6 @@ export default function ReviewsPage() {
           <span className="block">로드맵을 이용한 학생들의</span>
           <span className="block">솔직한 경험을 확인해 보세요</span>
         </h2>
-
-        {/* 관 선택 */}
-        <div
-          className="mb-6 flex justify-end transition-all duration-700 ease-out"
-          style={{
-            opacity: fade.isVisible ? 1 : 0,
-            transform: fade.isVisible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: fade.isVisible ? "120ms" : "0ms",
-          }}
-        >
-          <div className="flex shrink-0">
-            <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white py-1.5 pl-4 pr-2 shadow-sm ring-1 ring-slate-200/50">
-              <label htmlFor="branch-filter" className="text-sm font-medium text-slate-600">
-                관 선택
-              </label>
-              <select
-                id="branch-filter"
-                value={branchFilter}
-                onChange={(e) => setBranchFilter(e.target.value)}
-                className="-translate-y-px border-0 bg-transparent py-1 pr-6 text-sm font-medium text-slate-700 focus:outline-none focus:ring-0"
-              >
-                {BRANCH_OPTIONS.map((opt) => (
-                  <option key={opt.value || "all"} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
 
         {/* 모바일·태블릿: 카드 리스트 */}
         <div
@@ -133,7 +88,6 @@ export default function ReviewsPage() {
                       ) : (
                         <span className="text-xs font-medium text-slate-400">#{regularNum}</span>
                       )}
-                      <BranchBadge branch={post.branch} />
                     </div>
                     <h3 className={`line-clamp-2 ${isPinned ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>
                       {post.title}
@@ -168,9 +122,6 @@ export default function ReviewsPage() {
                     번호
                   </th>
                   <th className="px-8 py-5 text-center text-sm font-semibold uppercase tracking-wider text-slate-500">
-                    관 종류
-                  </th>
-                  <th className="px-8 py-5 text-left text-sm font-semibold uppercase tracking-wider text-slate-500">
                     제목
                   </th>
                   <th className="px-8 py-5 text-center text-sm font-semibold uppercase tracking-wider text-slate-500">
@@ -207,14 +158,9 @@ export default function ReviewsPage() {
                         )}
                       </td>
                       <td className="px-8 py-5">
-                        <div className="flex justify-center">
-                          <BranchBadge branch={post.branch} />
-                        </div>
-                      </td>
-                      <td className="px-8 py-5">
                         <Link
                           href={`/board/reviews/${post.id}`}
-                          className={`inline-flex items-center gap-1 text-base transition-colors group-hover:text-emerald-600 ${
+                          className={`inline-flex items-center gap-1 text-base ${
                             isPinned ? "font-bold text-slate-900" : "font-medium text-slate-800"
                           }`}
                         >

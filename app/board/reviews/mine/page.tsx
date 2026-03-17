@@ -350,7 +350,7 @@ export default function MyReviewsPage() {
                   </div>
                   <Link
                     href={`/board/reviews/${item.reviewId}?from=mine`}
-                    className="font-semibold text-slate-800 hover:text-emerald-600"
+                    className="font-semibold text-slate-800"
                   >
                     {item.title}
                   </Link>
@@ -413,7 +413,7 @@ export default function MyReviewsPage() {
                       <td className="px-6 py-4">
                         <Link
                           href={`/board/reviews/${item.reviewId}?from=mine`}
-                          className="font-medium text-slate-800 hover:text-emerald-600"
+                          className="font-medium text-slate-800"
                         >
                           {item.title}
                         </Link>
