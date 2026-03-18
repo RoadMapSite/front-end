@@ -3,6 +3,18 @@
 import Link from "next/link";
 import { useState } from 'react'
 import Image from "next/image";
+import { SiKakaotalk, SiNaver } from "react-icons/si";
+import { FaInstagram } from "react-icons/fa";
+
+const KAKAO_CHANNELS = [
+  { label: "로드맵 N수관 카카오 채널", href: "https://pf.kakao.com/_x" },
+  { label: "로드맵 하이엔드관 카카오 채널", href: "https://pf.kakao.com/_x" },
+] as const;
+
+const SNS_LINKS = [
+  { href: "https://blog.naver.com/jjwz147", icon: SiNaver, color: "text-[#03C75A] hover:text-[#03C75A]/90" },
+  { href: "https://www.instagram.com/roadmap0401/", icon: FaInstagram, color: "text-[#E4405F] hover:text-[#E4405F]/90" },
+] as const;
 
 type SubMenu = {
   label: string
@@ -94,7 +106,7 @@ export default function Header() {
         'sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 text-gray-900',
       ].join(' ')}
     >
-      <div className="mx-auto w-full max-w-[1600px] px-6 lg:px-12 py-2 flex items-center justify-between gap-6">
+      <div className="mx-auto w-full max-w-[1600px] pl-5 lg:pl-10 pr-2 lg:pr-5 py-2 flex items-center justify-between gap-5">
         {/* [좌측] 로고 */}
         <Link
           href="/"
@@ -120,7 +132,7 @@ export default function Header() {
         </Link>
 
         {/* [중앙] 정보성 메뉴 - 데스크톱 */}
-        <nav className="hidden lg:flex flex-1 justify-center items-center gap-10 xl:gap-12 px-8">
+        <nav className="hidden lg:flex flex-1 justify-center items-center gap-8 xl:gap-10 px-7">
           {infoMenus.map((menu) => (
             <div key={menu.label} className="relative group">
               <Link
@@ -163,8 +175,8 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* [우측] CTA 버튼 - 데스크톱 */}
-        <div className="hidden lg:flex items-center gap-3 shrink-0 ml-4">
+        {/* [우측] CTA 버튼 + SNS 아이콘 - 데스크톱 */}
+        <div className="hidden lg:flex items-center gap-3 shrink-0">
           {ctaMenus.map((item) => (
             <Link
               key={item.href}
@@ -174,6 +186,46 @@ export default function Header() {
               {item.label}
             </Link>
           ))}
+          {/* SNS 아이콘 - 등록 예약 버튼 오른쪽 (등록 예약과만 간격) */}
+          <div className="flex items-center gap-2 pl-2 border-l border-gray-200" aria-label="SNS 링크" style={{ marginLeft: '20px' }}>
+            <div className="relative group">
+              <button
+                type="button"
+                className="flex items-center justify-center w-[22px] h-[22px] rounded-full transition-all duration-200 hover:scale-110 text-[#FEE500] hover:text-[#FEE500]/90"
+                aria-label="카카오톡 채널"
+                aria-expanded="false"
+                aria-haspopup="true"
+              >
+                <SiKakaotalk className="w-[18px] h-[18px]" aria-hidden />
+              </button>
+              <div
+                className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 pt-1 pb-1 min-w-[190px] bg-white border border-gray-200 rounded shadow-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50"
+              >
+                {KAKAO_CHANNELS.map(({ label, href }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block px-4 py-2.5 text-xs text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    {label}
+                  </a>
+                ))}
+              </div>
+            </div>
+            {SNS_LINKS.map(({ href, icon: Icon, color }) => (
+              <a
+                key={href}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center justify-center w-[22px] h-[22px] rounded-full transition-all duration-200 hover:scale-110 ${color}`}
+              >
+                <Icon className="w-[18px] h-[18px]" aria-hidden />
+              </a>
+            ))}
+          </div>
         </div>
 
         {/* [모바일/태블릿] 햄버거 버튼 */}
