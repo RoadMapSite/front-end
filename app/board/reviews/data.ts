@@ -4,6 +4,8 @@ export type ReviewPost = {
   branch: string;
   title: string;
   author: string;
+  /** 표시할 이름 (지정 시 blurName 대신 사용) */
+  authorDisplay?: string;
   createdAt: string;
   views: number;
   content: string[];
@@ -142,6 +144,86 @@ export const reviewPosts: ReviewPost[] = [
       "시설, 서비스 모두 정말 좋아요. 특히 프린트물을 자리로 가져다주시는 서비스가 있는데 정말 편리해요.",
       "쉬는시간 지우개 가루까지 치워주시고 매 시간 환기를 해주실 정도로 학생들을 진심으로 위하는 독서실이에요.",
       "수능에서 꼭 좋은 결과 얻어서 명예의 전당에 올라가겠습니다. 로드맵 화이팅!",
+    ],
+  },
+  {
+    id: 9,
+    category: "일반",
+    branch: "하이엔드관",
+    title: "로드맵 사용 후기",
+    author: "lim",
+    authorDisplay: "lim****",
+    createdAt: "2022.05.03",
+    views: 7,
+    content: [
+      "동백에 여러 관리형 독서실을 다녀보고 분당쪽까지 다녀 봤는데 다른 독서실과 다르게 관리 선생님이 항상 옆에 계시니 동백의 다른 관리형 독서실보다는 관리가 더 잘 되는것 같고 분당보다는 훨씬 가깝고 싸서 시간 관리도 좋은것같습니다!",
+    ],
+    imageUrls: ["/images/review_image.jpg"],
+  },
+  {
+    id: 10,
+    category: "일반",
+    branch: "하이엔드관",
+    title: "이용 후기",
+    author: "김",
+    authorDisplay: "김*",
+    createdAt: "2022.05.13",
+    views: 8,
+    content: [
+      "관리 체계가 강하게 잡혀있어서 조금 힘들긴 하지만 시설도 깨끗하고 소음 하나하나까지 다 신경써줘서 정말 열심히 공부하려는 의지만 있으면 더할 나위 없이 좋은 학습공간",
+    ],
+  },
+  {
+    id: 11,
+    category: "일반",
+    branch: "N수관",
+    title: "로드맵 이용 후기",
+    author: "ssy",
+    authorDisplay: "ssy***",
+    createdAt: "2022.10.23",
+    views: 6,
+    content: [
+      "우선 관리선생님들이 타이트하게 잘 잡아주셔서 딴 생각없이 공부만 하게 되는점이 가장 좋은점인것같아요. 각오없이 그냥 공부하러 오기에는 좀 빡센감이 있고 각오만 잘 다지고 와서 여기 학습프로그램에 맞춰서 공부하면 성적향상은 꼭 될 것 같습니다. 또 여기는 상담을 통과한 고2.3만 다닐수 있어서 학습분위기는 아주 좋은편이에요!",
+    ],
+  },
+  {
+    id: 12,
+    category: "일반",
+    branch: "하이엔드관",
+    title: "로드맵 후기",
+    author: "lon",
+    authorDisplay: "lon****",
+    createdAt: "2023.02.19",
+    views: 9,
+    content: [
+      "시설이 엄청 깨끗하고 선생님들 관리 덕분에 학습집중도가 높아졌어요! 쾌적하고 관리가 철저해서 도움이 많이 됐습니당👍👍성적도 많이 올랐어요 최고😊",
+    ],
+  },
+  {
+    id: 13,
+    category: "일반",
+    branch: "하이엔드관",
+    title: "감사합니다",
+    author: "김혜",
+    authorDisplay: "김*혜",
+    createdAt: "2023.06.02",
+    views: 10,
+    content: [
+      "독서실 관리를 철저히 잘해주셔서 공부할 수 있는 분위기를 만들어 주셔서 너무 감사드립니다",
+      "로드맵 다닌뒤로 공부 습관이 잡혀서 좋았고 선생님들의 꼼꼼한 관리가 뛰어나서 좋았습니다 시설도 깨끗하고 깔끔해서 너무 좋습니다 집 가까이 있어서 행운이라 생각합니다 감사드립니다 고맙습니다 선생님",
+    ],
+  },
+  {
+    id: 14,
+    category: "일반",
+    branch: "하이엔드관",
+    title: "로드맵 추천합니다!",
+    author: "cks",
+    authorDisplay: "cks****",
+    createdAt: "2024.07.31",
+    views: 7,
+    content: [
+      "다른 강남이나 분당의 재종과 비교해도 학습 관리가 철저하고 시설이 깨끗해서 공부에만 집중할 수 있는 최선의 환경을 만들어주세요!",
     ],
   },
 ];

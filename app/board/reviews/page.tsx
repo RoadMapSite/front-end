@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useLayoutEffect, useRef } from "react";
 import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import { reviewPosts } from "./data";
@@ -13,6 +13,27 @@ const ITEMS_PER_PAGE = 10;
 export default function ReviewsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const fade = useFadeIn(0.1);
+  const contentTopRef = useRef<HTMLElement | null>(null);
+
+  useLayoutEffect(() => {
+    const scrollToTop = () => {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    };
+    scrollToTop();
+    const id = setTimeout(scrollToTop, 0);
+    return () => clearTimeout(id);
+  }, []);
+
+  const isFirstMount = useRef(true);
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    contentTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [currentPage]);
 
   const filteredAndSortedPosts = useMemo(() => {
     const list = [...reviewPosts];
@@ -42,7 +63,13 @@ export default function ReviewsPage() {
         ]}
       />
 
-      <section ref={fade.ref} className="mx-auto max-w-7xl px-4 sm:px-6 py-10 lg:py-14">
+      <section
+        ref={(el) => {
+          (fade.ref as React.MutableRefObject<HTMLElement | null>).current = el;
+          contentTopRef.current = el;
+        }}
+        className="mx-auto max-w-7xl px-4 sm:px-6 py-10 lg:py-14"
+      >
         {/* 인트로 타이틀 (다른 페이지와 동일 스타일) */}
         <h2
           className="mb-20 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl transition-all duration-700 ease-out"
@@ -95,7 +122,7 @@ export default function ReviewsPage() {
                       {post.title}
                     </h3>
                     <div className={`mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs ${isPinned ? "font-semibold text-slate-700" : "text-slate-500"}`}>
-                      <span>{blurName(post.author)}</span>
+                      <span>{post.authorDisplay ?? blurName(post.author)}</span>
                       <span>{post.createdAt}</span>
                       <span>조회 {post.views}</span>
                     </div>
@@ -171,7 +198,7 @@ export default function ReviewsPage() {
                           <ChevronRight className="h-4 w-4 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
                         </Link>
                       </td>
-                      <td className={`px-8 py-5 text-center text-base ${isPinned ? "font-semibold text-slate-800" : "text-slate-500"}`}>{blurName(post.author)}</td>
+                      <td className={`px-8 py-5 text-center text-base ${isPinned ? "font-semibold text-slate-800" : "text-slate-500"}`}>{post.authorDisplay ?? blurName(post.author)}</td>
                       <td className={`px-8 py-5 text-center text-base ${isPinned ? "font-semibold text-slate-800" : "text-slate-500"}`}>{post.createdAt}</td>
                       <td className={`px-8 py-5 text-center text-base ${isPinned ? "font-semibold text-slate-800" : "text-slate-400"}`}>{post.views}</td>
                     </tr>
@@ -197,7 +224,7 @@ export default function ReviewsPage() {
               type="button"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage <= 1}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white"
+              className="inline-flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
               aria-label="이전 페이지"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -208,10 +235,10 @@ export default function ReviewsPage() {
                   key={page}
                   type="button"
                   onClick={() => setCurrentPage(page)}
-                  className={`h-9 min-w-[2.25rem] rounded-lg px-2 text-sm font-medium transition-colors ${
+                  className={`flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-sm font-medium transition-colors ${
                     currentPage === page
-                      ? "bg-emerald-600 text-white"
-                      : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                      ? "bg-slate-800 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
                   }`}
                 >
                   {page}
@@ -222,7 +249,7 @@ export default function ReviewsPage() {
               type="button"
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage >= totalPages}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white"
+              className="inline-flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
               aria-label="다음 페이지"
             >
               <ChevronRight className="h-4 w-4" />

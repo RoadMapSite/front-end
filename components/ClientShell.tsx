@@ -17,7 +17,18 @@ export default function ClientShell({
   useEffect(() => {
     const hash = window.location.hash?.slice(1);
     if (hash) return; // 해시가 있으면 HashScrollHandler가 처리하므로 상단 스크롤 생략
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    const scrollToTop = () => {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    };
+    scrollToTop();
+    const rafId = requestAnimationFrame(scrollToTop);
+    const timeoutId = setTimeout(scrollToTop, 150);
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(timeoutId);
+    };
   }, [pathname]);
 
   if (isAdmin) {

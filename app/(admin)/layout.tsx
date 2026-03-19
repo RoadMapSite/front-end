@@ -55,9 +55,9 @@ export default function AdminLayout({
   }
 
   return (
-    <div className={`min-h-screen flex ${fontClassName} animate-[admin-dashboard-appear_0.8s_ease-out]`}>
-      {/* 사이드바 */}
-      <aside className="w-[250px] h-screen flex-shrink-0 bg-slate-800 border-r border-slate-700 flex flex-col justify-between">
+    <div className={`min-h-screen ${fontClassName} animate-[admin-dashboard-appear_0.8s_ease-out]`}>
+      {/* 사이드바 - 화면 좌측 고정 */}
+      <aside className="fixed top-0 left-0 z-40 h-screen w-[250px] flex-shrink-0 overflow-y-auto bg-slate-800 border-r border-slate-700 flex flex-col justify-between">
         <div>
           <div className="p-6">
             <Link href="/admin" className="block">
@@ -118,8 +118,8 @@ export default function AdminLayout({
         </div>
       </aside>
 
-      {/* 메인 콘텐츠 영역 */}
-      <main className="flex-1 min-w-0 bg-slate-50">{children}</main>
+      {/* 메인 콘텐츠 영역 - 사이드바 너비만큼 좌측 마진 */}
+      <main className="ml-[250px] min-h-screen min-w-0 flex-1 bg-slate-50">{children}</main>
 
       {/* 확인 모달 */}
       {showConfirmModal && (

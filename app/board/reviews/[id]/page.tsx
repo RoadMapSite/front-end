@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import PageHero from "@/components/PageHero";
 import { blurName } from "@/lib/blurName";
@@ -45,7 +46,7 @@ export default async function ReviewDetailPage({ params, searchParams }: Props) 
               {post.title}
             </h1>
             <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500">
-              <span className="font-medium text-slate-700">{blurName(post.author)}</span>
+              <span className="font-medium text-slate-700">{post.authorDisplay ?? blurName(post.author)}</span>
               <span className="text-slate-300">·</span>
               <span>{post.createdAt}</span>
               <span className="text-slate-300">·</span>
@@ -69,6 +70,21 @@ export default async function ReviewDetailPage({ params, searchParams }: Props) 
                 )
               )}
             </div>
+            {post.imageUrls && post.imageUrls.length > 0 && (
+              <div className="mt-8 space-y-4">
+                {post.imageUrls.map((url, index) => (
+                  <div key={`img-${index}`} className="overflow-hidden rounded-lg">
+                    <Image
+                      src={url}
+                      alt={`후기 이미지 ${index + 1}`}
+                      width={800}
+                      height={600}
+                      className="h-auto w-full object-contain"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 목록으로 */}

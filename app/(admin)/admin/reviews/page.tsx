@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { Star, X, MessageSquare } from "lucide-react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { Star, X, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
 import { reviewPosts } from "@/app/board/reviews/data";
 
 type ReviewItem = {
@@ -15,18 +15,28 @@ type ReviewItem = {
   imageUrls?: string[];
 };
 
-const DUMMY_REVIEWS: ReviewItem[] = reviewPosts
-  .map((post) => ({
-    id: post.id,
-    title: post.title,
-    author: post.author,
-    content: post.content.join("\n\n"),
-    createdAt: post.createdAt,
-    isApproved: true,
-    isExcellent: !!post.isTop,
-    imageUrls: post.imageUrls,
-  }))
-  .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+const DUMMY_REVIEWS_BASE = reviewPosts.map((post) => ({
+  id: post.id,
+  title: post.title,
+  author: post.author,
+  content: post.content.join("\n\n"),
+  createdAt: post.createdAt,
+  isApproved: true,
+  isExcellent: !!post.isTop,
+  imageUrls: post.imageUrls,
+}));
+
+const DUMMY_REVIEWS = [...DUMMY_REVIEWS_BASE].sort(
+  (a, b) => b.createdAt.localeCompare(a.createdAt)
+);
+
+const REVIEW_NUMBER_MAP: Record<number, number> = Object.fromEntries(
+  [...DUMMY_REVIEWS_BASE]
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    .map((r, i) => [r.id, i + 1])
+);
+
+const ITEMS_PER_PAGE = 10;
 
 function ToggleSwitch({
   checked,
@@ -60,6 +70,7 @@ function ToggleSwitch({
 
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<ReviewItem[]>(DUMMY_REVIEWS);
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedReview, setSelectedReview] = useState<ReviewItem | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastExiting, setToastExiting] = useState(false);
@@ -77,6 +88,10 @@ export default function ReviewsPage() {
         toastTimeoutRef.current = null;
       }, 700);
     }, 1000);
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
   }, []);
 
   useEffect(() => {
@@ -111,8 +126,24 @@ export default function ReviewsPage() {
     showToast(nextState ? "✅ 우수 후기가 지정되었습니다." : "✅ 우수 후기가 해제되었습니다.");
   };
 
+  const totalPages = Math.max(1, Math.ceil(reviews.length / ITEMS_PER_PAGE));
+  const pagedReviews = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return reviews.slice(start, start + ITEMS_PER_PAGE);
+  }, [reviews, currentPage]);
+
+  const tableTopRef = useRef<HTMLDivElement | null>(null);
+  const isFirstMount = useRef(true);
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    tableTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [currentPage]);
+
   return (
-    <div className="p-8">
+    <div className="px-8 pt-8 pb-20">
       <div className="mb-6">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-500">
@@ -125,8 +156,9 @@ export default function ReviewsPage() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <table className="w-full">
+      <div ref={tableTopRef} className="overflow-x-auto">
+        <div className="min-w-0 rounded-xl border border-slate-200 bg-white shadow-sm">
+        <table className="w-full min-w-[640px]">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50/80">
               <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
@@ -150,13 +182,13 @@ export default function ReviewsPage() {
             </tr>
           </thead>
           <tbody>
-            {reviews.map((review, index) => (
+            {pagedReviews.map((review) => (
               <tr
                 key={review.id}
                 className="border-b border-slate-100 last:border-0 transition-colors hover:bg-gray-50"
               >
                 <td className="px-6 py-4 text-sm font-medium text-slate-700">
-                  {index + 1}
+                  {REVIEW_NUMBER_MAP[review.id]}
                 </td>
                 <td className="px-6 py-4">
                   <button
@@ -199,7 +231,48 @@ export default function ReviewsPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
+
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <nav className="mt-8 mb-12 flex items-center justify-center gap-1" aria-label="페이지 선택">
+          <button
+            type="button"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage <= 1}
+            className="inline-flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
+            aria-label="이전 페이지"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+            <div className="flex items-center gap-0.5">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-sm font-medium transition-colors ${
+                    currentPage === page
+                      ? "bg-slate-800 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+          <button
+            type="button"
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage >= totalPages}
+            className="inline-flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
+            aria-label="다음 페이지"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </nav>
+      )}
 
       {/* Detail Modal */}
       {selectedReview && (
