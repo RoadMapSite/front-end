@@ -88,6 +88,21 @@ export default function AboutSystemPage() {
             ))}
           </div>
 
+          {/* 주간보고서 섹션 */}
+          <div className="motion-rise motion-delay-2 mx-auto mb-12 mt-28 max-w-6xl md:mb-16 md:mt-36">
+            <h2 className="mb-16 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl md:mb-20">
+              <span className="block">학생의 1주간 출결 현황부터 학습 평가, 주말 자율학습 시간까지</span>
+              <span className="block whitespace-nowrap">모든 학습 데이터를 주간 보고서로 정리하여 매주 월요일 학부모님께 발송해 드립니다</span>
+            </h2>
+            <Image
+              src="/images/주간보고서.jpg"
+              alt="주간보고서"
+              width={1200}
+              height={1600}
+              className="h-auto w-full"
+            />
+          </div>
+
           {/* 운영 규정 섹션 */}
           <div className="motion-rise motion-delay-2 mx-auto mb-12 mt-44 max-w-4xl md:mb-16 md:mt-52">
             <h2 className="mb-6 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl">
