@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import ConsultationCalendar from "@/components/ConsultationCalendar";
 import { getAvailableTimeSlots } from "@/lib/consultationSlots";
+import { apiPost } from "@/api/apiClient";
 
 type Branch = "N" | "Hi-end";
 
@@ -11,11 +12,6 @@ const BRANCH_OPTIONS: { value: Branch; label: string }[] = [
   { value: "Hi-end", label: "하이엔드관" },
 ];
 
-function getConsultApiBase(): string {
-  if (typeof process === "undefined") return "";
-  return process.env.NEXT_PUBLIC_CONSULT_API_BASE ?? "";
-}
-
 /** 인증번호 발송 API 응답 */
 interface SendAuthResponse {
   success: boolean;
@@ -23,17 +19,8 @@ interface SendAuthResponse {
 }
 
 async function sendVerificationCode(phoneNumber: string): Promise<SendAuthResponse> {
-  const base = getConsultApiBase();
-  if (!base) throw new Error("API 주소가 설정되지 않았습니다. NEXT_PUBLIC_CONSULT_API_BASE를 설정해 주세요.");
   const digitsOnly = phoneNumber.replace(/\D/g, "");
-  const res = await fetch(`${base}/v1/common/auth/send`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phoneNumber: digitsOnly }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.message ?? `요청 실패: ${res.status}`);
-  return data;
+  return apiPost<SendAuthResponse>("v1/common/auth/send", { phoneNumber: digitsOnly });
 }
 
 /** 인증 검증 API 응답 */
@@ -44,17 +31,11 @@ interface VerifyAuthResponse {
 }
 
 async function verifyAuthCode(phoneNumber: string, authCode: string): Promise<VerifyAuthResponse> {
-  const base = getConsultApiBase();
-  if (!base) throw new Error("API 주소가 설정되지 않았습니다. NEXT_PUBLIC_CONSULT_API_BASE를 설정해 주세요.");
   const digitsOnly = phoneNumber.replace(/\D/g, "");
-  const res = await fetch(`${base}/v1/common/auth/verify`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phoneNumber: digitsOnly, authCode: authCode.trim() }),
+  return apiPost<VerifyAuthResponse>("v1/common/auth/verify", {
+    phoneNumber: digitsOnly,
+    authCode: authCode.trim(),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.message ?? `요청 실패: ${res.status}`);
-  return data;
 }
 
 /** 상담 등록 API 응답 */
@@ -69,22 +50,14 @@ async function submitConsultation(
   payload: { branch: Branch; date: string; time: string; name: string; age: number; phoneNumber: string },
   verificationToken: string
 ): Promise<SubmitConsultationResponse> {
-  const base = getConsultApiBase();
-  if (!base) throw new Error("API 주소가 설정되지 않았습니다. NEXT_PUBLIC_CONSULT_API_BASE를 설정해 주세요.");
-  const res = await fetch(`${base}/v1/user/consultations`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${verificationToken}`,
-    },
-    body: JSON.stringify({
+  return apiPost<SubmitConsultationResponse>(
+    "v1/user/consultations",
+    {
       ...payload,
       phoneNumber: payload.phoneNumber.replace(/\D/g, ""),
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.message ?? `요청 실패: ${res.status}`);
-  return data;
+    },
+    { token: verificationToken }
+  );
 }
 
 /** 특정 날짜에 대해 “가능한” 시간을 목 데이터로 반환 (선택된 날짜의 해시 기반) */

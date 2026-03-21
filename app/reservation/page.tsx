@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { apiPost } from "@/api/apiClient";
 
 type Season = "SEMESTER_1" | "SEMESTER_2" | "SUMMER" | "WINTER";
 type Branch = "N" | "Hi-end";
@@ -17,28 +18,14 @@ const BRANCH_OPTIONS: { value: Branch; label: string }[] = [
   { value: "Hi-end", label: "하이엔드관" },
 ];
 
-function getApiBase(): string {
-  if (typeof process === "undefined") return "";
-  return process.env.NEXT_PUBLIC_CONSULT_API_BASE ?? "";
-}
-
 interface SendAuthResponse {
   success: boolean;
   message: string;
 }
 
 async function sendVerificationCode(phoneNumber: string): Promise<SendAuthResponse> {
-  const base = getApiBase();
-  if (!base) throw new Error("API 주소가 설정되지 않았습니다. NEXT_PUBLIC_CONSULT_API_BASE를 설정해 주세요.");
   const digitsOnly = phoneNumber.replace(/\D/g, "");
-  const res = await fetch(`${base}/v1/common/auth/send`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phoneNumber: digitsOnly }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.message ?? `요청 실패: ${res.status}`);
-  return data;
+  return apiPost<SendAuthResponse>("v1/common/auth/send", { phoneNumber: digitsOnly });
 }
 
 interface VerifyAuthResponse {
@@ -48,17 +35,11 @@ interface VerifyAuthResponse {
 }
 
 async function verifyAuthCode(phoneNumber: string, authCode: string): Promise<VerifyAuthResponse> {
-  const base = getApiBase();
-  if (!base) throw new Error("API 주소가 설정되지 않았습니다. NEXT_PUBLIC_CONSULT_API_BASE를 설정해 주세요.");
   const digitsOnly = phoneNumber.replace(/\D/g, "");
-  const res = await fetch(`${base}/v1/common/auth/verify`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phoneNumber: digitsOnly, authCode: authCode.trim() }),
+  return apiPost<VerifyAuthResponse>("v1/common/auth/verify", {
+    phoneNumber: digitsOnly,
+    authCode: authCode.trim(),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.message ?? `요청 실패: ${res.status}`);
-  return data;
 }
 
 interface SubmitWaitlistResponse {
@@ -78,8 +59,6 @@ async function submitWaitlist(
   },
   verificationToken: string
 ): Promise<SubmitWaitlistResponse> {
-  const base = getApiBase();
-  if (!base) throw new Error("API 주소가 설정되지 않았습니다. NEXT_PUBLIC_CONSULT_API_BASE를 설정해 주세요.");
   const body: Record<string, unknown> = {
     season: payload.season,
     name: payload.name.trim(),
@@ -89,17 +68,7 @@ async function submitWaitlist(
   if (payload.branch != null) {
     body.branch = payload.branch;
   }
-  const res = await fetch(`${base}/v1/user/waitlists`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${verificationToken}`,
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.message ?? `요청 실패: ${res.status}`);
-  return data;
+  return apiPost<SubmitWaitlistResponse>("v1/user/waitlists", body, { token: verificationToken });
 }
 
 const needsBranch = (season: Season) => season === "SEMESTER_1" || season === "SEMESTER_2";

@@ -4,11 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import { useFadeIn } from "@/hooks/useFadeIn";
-
-function getApiBase(): string {
-  if (typeof process === "undefined") return "";
-  return process.env.NEXT_PUBLIC_CONSULT_API_BASE ?? "";
-}
+import { apiPost, apiPostForm } from "@/api/apiClient";
 
 interface SendAuthResponse {
   success: boolean;
@@ -16,17 +12,8 @@ interface SendAuthResponse {
 }
 
 async function sendVerificationCode(phoneNumber: string): Promise<SendAuthResponse> {
-  const base = getApiBase();
-  if (!base) throw new Error("API 주소가 설정되지 않았습니다.");
   const digitsOnly = phoneNumber.replace(/\D/g, "");
-  const res = await fetch(`${base}/v1/common/auth/send`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phoneNumber: digitsOnly }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.message ?? `요청 실패: ${res.status}`);
-  return data;
+  return apiPost<SendAuthResponse>("v1/common/auth/send", { phoneNumber: digitsOnly });
 }
 
 interface VerifyAuthResponse {
@@ -36,17 +23,11 @@ interface VerifyAuthResponse {
 }
 
 async function verifyAuthCode(phoneNumber: string, authCode: string): Promise<VerifyAuthResponse> {
-  const base = getApiBase();
-  if (!base) throw new Error("API 주소가 설정되지 않았습니다.");
   const digitsOnly = phoneNumber.replace(/\D/g, "");
-  const res = await fetch(`${base}/v1/common/auth/verify`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phoneNumber: digitsOnly, authCode: authCode.trim() }),
+  return apiPost<VerifyAuthResponse>("v1/common/auth/verify", {
+    phoneNumber: digitsOnly,
+    authCode: authCode.trim(),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.message ?? `요청 실패: ${res.status}`);
-  return data;
 }
 
 const MAX_IMAGES = 5;
@@ -144,34 +125,17 @@ export default function ReviewRegisterPage() {
 
     setIsSubmitting(true);
     try {
-      // TODO: 실제 API 연동 시 POST /v1/user/reviews 호출
-      const base = getApiBase();
-      if (base) {
-        const formData = new FormData();
-        formData.append("title", title.trim());
-        formData.append("content", content.trim());
-        formData.append("name", name.trim());
-        formData.append("phoneNumber", phoneNumber.replace(/\D/g, ""));
-        imageFiles.forEach((f, i) => formData.append(`images`, f));
+      const formData = new FormData();
+      formData.append("title", title.trim());
+      formData.append("content", content.trim());
+      formData.append("name", name.trim());
+      formData.append("phoneNumber", phoneNumber.replace(/\D/g, ""));
+      imageFiles.forEach((f) => formData.append("images", f));
 
-        const res = await fetch(`${base}/v1/user/reviews`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${verificationToken}` },
-          body: formData,
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          alert(data?.message ?? "후기가 등록되었습니다. 검토 후 노출됩니다.");
-          window.location.href = "/board/reviews";
-          return;
-        }
-        const err = await res.json();
-        throw new Error(err?.message ?? "등록에 실패했습니다.");
-      }
-
-      // API 미설정 시 임시 처리
-      alert("후기가 등록 요청되었습니다. (API 연동 후 실제 등록됩니다.)");
+      const data = await apiPostForm<{ message?: string }>("v1/user/reviews", formData, {
+        token: verificationToken,
+      });
+      alert(data?.message ?? "후기가 등록되었습니다. 검토 후 노출됩니다.");
       window.location.href = "/board/reviews";
     } catch (err) {
       alert(err instanceof Error ? err.message : "후기 등록에 실패했습니다.");

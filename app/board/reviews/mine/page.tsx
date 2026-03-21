@@ -6,6 +6,7 @@ import { blurName } from "@/lib/blurName";
 import PageHero from "@/components/PageHero";
 import { Trash2 } from "lucide-react";
 import { useFadeIn } from "@/hooks/useFadeIn";
+import { apiPost, apiGet, apiDelete } from "@/api/apiClient";
 
 type ReviewStatus = "PENDING" | "APPROVED";
 
@@ -21,28 +22,14 @@ interface MyReviewsResponse {
   myReviews: MyReview[];
 }
 
-function getApiBase(): string {
-  if (typeof process === "undefined") return "";
-  return process.env.NEXT_PUBLIC_CONSULT_API_BASE ?? "";
-}
-
 interface SendAuthResponse {
   success: boolean;
   message: string;
 }
 
 async function sendVerificationCode(phoneNumber: string): Promise<SendAuthResponse> {
-  const base = getApiBase();
-  if (!base) throw new Error("API 주소가 설정되지 않았습니다.");
   const digitsOnly = phoneNumber.replace(/\D/g, "");
-  const res = await fetch(`${base}/v1/common/auth/send`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phoneNumber: digitsOnly }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.message ?? `요청 실패: ${res.status}`);
-  return data;
+  return apiPost<SendAuthResponse>("v1/common/auth/send", { phoneNumber: digitsOnly });
 }
 
 interface VerifyAuthResponse {
@@ -52,31 +39,15 @@ interface VerifyAuthResponse {
 }
 
 async function verifyAuthCode(phoneNumber: string, authCode: string): Promise<VerifyAuthResponse> {
-  const base = getApiBase();
-  if (!base) throw new Error("API 주소가 설정되지 않았습니다.");
   const digitsOnly = phoneNumber.replace(/\D/g, "");
-  const res = await fetch(`${base}/v1/common/auth/verify`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phoneNumber: digitsOnly, authCode: authCode.trim() }),
+  return apiPost<VerifyAuthResponse>("v1/common/auth/verify", {
+    phoneNumber: digitsOnly,
+    authCode: authCode.trim(),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.message ?? `요청 실패: ${res.status}`);
-  return data;
 }
 
 async function fetchMyReviews(verificationToken: string): Promise<MyReviewsResponse> {
-  const base = getApiBase();
-  if (!base) throw new Error("API 주소가 설정되지 않았습니다.");
-  const res = await fetch(`${base}/v1/user/reviews/mine`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${verificationToken}`,
-    },
-  });
-  if (!res.ok) throw new Error(`목록 조회 실패: ${res.status}`);
-  return res.json();
+  return apiGet<MyReviewsResponse>("v1/user/reviews/mine", { token: verificationToken });
 }
 
 interface DeleteReviewResponse {
@@ -85,18 +56,7 @@ interface DeleteReviewResponse {
 }
 
 async function deleteReview(reviewId: number, verificationToken: string): Promise<DeleteReviewResponse> {
-  const base = getApiBase();
-  if (!base) throw new Error("API 주소가 설정되지 않았습니다.");
-  const res = await fetch(`${base}/v1/user/reviews/${reviewId}`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${verificationToken}`,
-    },
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.message ?? `삭제 실패: ${res.status}`);
-  return data;
+  return apiDelete<DeleteReviewResponse>(`v1/user/reviews/${reviewId}`, { token: verificationToken });
 }
 
 function formatDate(iso: string): string {
