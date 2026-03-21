@@ -47,7 +47,13 @@ interface SubmitConsultationResponse {
 }
 
 async function submitConsultation(
-  payload: { branch: Branch; date: string; time: string; name: string; age: number; phoneNumber: string },
+  payload: {
+    branch: Branch;
+    date: string;
+    time: string;
+    name: string;
+    phoneNumber: string;
+  } & ({ age: number } | { school: string; grade: string }),
   verificationToken: string
 ): Promise<SubmitConsultationResponse> {
   return apiPost<SubmitConsultationResponse>(
@@ -75,6 +81,8 @@ export default function ConsultingPage() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
+  const [school, setSchool] = useState("");
+  const [grade, setGrade] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationSent, setVerificationSent] = useState(false);
@@ -147,14 +155,18 @@ export default function ConsultingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!branch || !selectedDate || !selectedTime || !name.trim() || !age.trim() || !phoneNumber.trim() || !phoneVerified || !verificationToken) return;
+    if (!branch || !selectedDate || !selectedTime || !name.trim() || !phoneNumber.trim() || !phoneVerified || !verificationToken) return;
+    const isHiEnd = branch === "Hi-end";
+    if (isHiEnd && (!school.trim() || !grade)) return;
+    if (!isHiEnd && !age.trim()) return;
+
     const payload = {
       branch,
       date: selectedDate,
       time: selectedTime,
       name: name.trim(),
-      age: parseInt(age, 10),
       phoneNumber: phoneNumber.trim(),
+      ...(isHiEnd ? { school: school.trim(), grade } : { age: parseInt(age, 10) }),
     };
     setIsSubmitting(true);
     try {
@@ -313,15 +325,36 @@ export default function ConsultingPage() {
                 onChange={(e) => setName(e.target.value)}
                 className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
               />
-              <input
-                type="number"
-                min={1}
-                max={99}
-                placeholder="나이를 입력해주세요"
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-                className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
-              />
+              {branch === "Hi-end" ? (
+                <>
+                  <input
+                    type="text"
+                    placeholder="학교를 입력해주세요"
+                    value={school}
+                    onChange={(e) => setSchool(e.target.value)}
+                    className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
+                  />
+                  <select
+                    value={grade}
+                    onChange={(e) => setGrade(e.target.value)}
+                    className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 focus:outline-none focus:border-gray-300 bg-gray-50/50 appearance-none cursor-pointer"
+                  >
+                    <option value="">학년을 선택해주세요</option>
+                    <option value="2학년">2학년</option>
+                    <option value="3학년">3학년</option>
+                  </select>
+                </>
+              ) : branch === "N" ? (
+                <input
+                  type="number"
+                  min={1}
+                  max={99}
+                  placeholder="나이를 입력해주세요"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
+                />
+              ) : null}
               <div className="flex rounded-xl border border-gray-200 overflow-hidden bg-gray-50/50">
                 <input
                   type="tel"
@@ -382,10 +415,10 @@ export default function ConsultingPage() {
                 !selectedDate ||
                 !selectedTime ||
                 !name.trim() ||
-                !age.trim() ||
                 !phoneNumber.trim() ||
                 !phoneVerified ||
-                !verificationToken
+                !verificationToken ||
+                (branch === "Hi-end" ? !school.trim() || !grade : !age.trim())
               }
               className="w-full cursor-pointer py-4 rounded-xl bg-gray-700 text-white text-base font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { apiPost } from "@/api/apiClient";
+import { Info } from "lucide-react";
 
 type Season = "SEMESTER_1" | "SEMESTER_2" | "SUMMER" | "WINTER";
 type Branch = "N" | "Hi-end";
@@ -54,19 +55,27 @@ async function submitWaitlist(
     branch: string | null;
     season: Season;
     name: string;
-    age: number;
     phoneNumber: string;
+    age?: number;
+    school?: string;
+    grade?: string;
   },
   verificationToken: string
 ): Promise<SubmitWaitlistResponse> {
   const body: Record<string, unknown> = {
     season: payload.season,
     name: payload.name.trim(),
-    age: payload.age,
     phoneNumber: payload.phoneNumber.replace(/\D/g, ""),
   };
   if (payload.branch != null) {
     body.branch = payload.branch;
+  }
+  if (payload.age != null) {
+    body.age = payload.age;
+  }
+  if (payload.school?.trim()) {
+    body.school = payload.school.trim();
+    if (payload.grade) body.grade = payload.grade;
   }
   return apiPost<SubmitWaitlistResponse>("/v1/user/waitlists", body, { token: verificationToken });
 }
@@ -78,6 +87,8 @@ export default function ReservationPage() {
   const [branch, setBranch] = useState<Branch | null>(null);
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
+  const [school, setSchool] = useState("");
+  const [grade, setGrade] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationSent, setVerificationSent] = useState(false);
@@ -138,24 +149,63 @@ export default function ReservationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !season ||
-      !name.trim() ||
-      !age.trim() ||
-      !phoneNumber.trim() ||
-      !phoneVerified ||
-      !verificationToken
-    )
-      return;
+    if (!season || !name.trim() || !phoneNumber.trim() || !phoneVerified || !verificationToken) return;
     if (needsBranch(season) && !branch) return;
 
-    const payload = {
+    const isCamp = !needsBranch(season);
+    const useAge = needsBranch(season) && branch === "N";
+
+    if (useAge && !age.trim()) {
+      alert("나이를 입력해 주세요.");
+      return;
+    }
+    if (isCamp) {
+      const hasSchool = school.trim().length > 0;
+      const hasGrade = !!grade;
+      const hasAge = age.trim().length > 0;
+
+      if (hasSchool && !hasGrade) {
+        alert("학년을 선택해 주세요.");
+        return;
+      }
+      if (hasGrade && !hasSchool) {
+        alert("학교를 입력해 주세요.");
+        return;
+      }
+      if (!hasSchool && !hasGrade && !hasAge) {
+        alert("학교·학년을 선택하시거나, 나이를 입력해 주세요.");
+        return;
+      }
+    } else if (!useAge && (!school.trim() || !grade)) return;
+
+    const payload: {
+      branch: string | null;
+      season: Season;
+      name: string;
+      phoneNumber: string;
+      age?: number;
+      school?: string;
+      grade?: string;
+    } = {
       branch: needsBranch(season) ? branch! : null,
       season,
       name: name.trim(),
-      age: parseInt(age, 10),
       phoneNumber: phoneNumber.trim(),
     };
+    if (useAge) {
+      payload.age = parseInt(age, 10);
+    } else if (isCamp) {
+      if (school.trim() && grade) {
+        payload.school = school.trim();
+        payload.grade = grade;
+      }
+      if (age.trim()) {
+        payload.age = parseInt(age, 10);
+      }
+    } else {
+      payload.school = school.trim();
+      payload.grade = grade;
+    }
 
     setIsSubmitting(true);
     try {
@@ -168,14 +218,30 @@ export default function ReservationPage() {
     }
   };
 
+  const useAgeForSubmit = season !== null && needsBranch(season) && branch === "N";
+  const isCampForSubmit = season !== null && !needsBranch(season);
+
+  const isValidCampInput = () => {
+    const hasSchool = school.trim().length > 0;
+    const hasGrade = !!grade;
+    const hasAge = age.trim().length > 0;
+    if (hasSchool && !hasGrade) return false;
+    if (hasGrade && !hasSchool) return false;
+    return (hasSchool && hasGrade) || hasAge;
+  };
+
   const canSubmit =
     season &&
     (needsBranch(season) ? branch : true) &&
     name.trim() &&
-    age.trim() &&
     phoneNumber.trim() &&
     phoneVerified &&
-    verificationToken;
+    verificationToken &&
+    (useAgeForSubmit
+      ? age.trim()
+      : isCampForSubmit
+        ? isValidCampInput()
+        : school.trim() && grade);
 
   return (
     <main>
@@ -246,15 +312,62 @@ export default function ReservationPage() {
                 onChange={(e) => setName(e.target.value)}
                 className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
               />
-              <input
-                type="number"
-                min={1}
-                max={99}
-                placeholder="나이를 입력해주세요"
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-                className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
-              />
+              {showBranchSelection && branch === "N" ? (
+                <input
+                  type="number"
+                  min={1}
+                  max={99}
+                  placeholder="나이를 입력해주세요"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
+                />
+              ) : (showBranchSelection && branch === "Hi-end") || (season && !needsBranch(season)) ? (
+                <>
+                  {season && !needsBranch(season) && (
+                    <div className="flex gap-4 rounded-2xl bg-gradient-to-br from-slate-50 to-sky-50/80 px-5 py-4 shadow-sm ring-1 ring-slate-200/60">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-500/10">
+                        <Info className="h-5 w-5 text-sky-600" />
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-1 pt-0.5">
+                        <p className="text-sm font-semibold text-slate-800">입력 안내</p>
+                        <p className="text-sm leading-relaxed text-slate-600">
+                          <span className="font-medium text-slate-700">학생</span>이시면 학교와 학년을 선택해 주세요.
+                          <br />
+                          <span className="font-medium text-slate-700">학생이 아닌</span> 경우 나이만 입력해 주세요.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  <input
+                    type="text"
+                    placeholder="학교를 입력해주세요"
+                    value={school}
+                    onChange={(e) => setSchool(e.target.value)}
+                    className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
+                  />
+                  <select
+                    value={grade}
+                    onChange={(e) => setGrade(e.target.value)}
+                    className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 focus:outline-none focus:border-gray-300 bg-gray-50/50 appearance-none cursor-pointer"
+                  >
+                    <option value="">학년을 선택해주세요</option>
+                    <option value="2학년">2학년</option>
+                    <option value="3학년">3학년</option>
+                  </select>
+                  {season && !needsBranch(season) && (
+                    <input
+                      type="number"
+                      min={1}
+                      max={99}
+                      placeholder="나이를 입력해주세요 (학생이 아닌 경우)"
+                      value={age}
+                      onChange={(e) => setAge(e.target.value)}
+                      className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
+                    />
+                  )}
+                </>
+              ) : null}
               <div className="flex rounded-xl border border-gray-200 overflow-hidden bg-gray-50/50">
                 <input
                   type="tel"
