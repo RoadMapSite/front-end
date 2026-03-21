@@ -29,7 +29,7 @@ interface SendAuthResponse {
 
 async function sendVerificationCode(phoneNumber: string): Promise<SendAuthResponse> {
   const digitsOnly = phoneNumber.replace(/\D/g, "");
-  return apiPost<SendAuthResponse>("v1/common/auth/send", { phoneNumber: digitsOnly });
+  return apiPost<SendAuthResponse>("/v1/common/auth/send", { phoneNumber: digitsOnly });
 }
 
 interface VerifyAuthResponse {
@@ -40,14 +40,14 @@ interface VerifyAuthResponse {
 
 async function verifyAuthCode(phoneNumber: string, authCode: string): Promise<VerifyAuthResponse> {
   const digitsOnly = phoneNumber.replace(/\D/g, "");
-  return apiPost<VerifyAuthResponse>("v1/common/auth/verify", {
+  return apiPost<VerifyAuthResponse>("/v1/common/auth/verify", {
     phoneNumber: digitsOnly,
     authCode: authCode.trim(),
   });
 }
 
 async function fetchMyReviews(verificationToken: string): Promise<MyReviewsResponse> {
-  return apiGet<MyReviewsResponse>("v1/user/reviews/mine", { token: verificationToken });
+  return apiGet<MyReviewsResponse>("/v1/user/reviews/mine", { token: verificationToken });
 }
 
 interface DeleteReviewResponse {
@@ -56,7 +56,7 @@ interface DeleteReviewResponse {
 }
 
 async function deleteReview(reviewId: number, verificationToken: string): Promise<DeleteReviewResponse> {
-  return apiDelete<DeleteReviewResponse>(`v1/user/reviews/${reviewId}`, { token: verificationToken });
+  return apiDelete<DeleteReviewResponse>(`/v1/user/reviews/${reviewId}`, { token: verificationToken });
 }
 
 function formatDate(iso: string): string {

@@ -13,7 +13,7 @@ interface SendAuthResponse {
 
 async function sendVerificationCode(phoneNumber: string): Promise<SendAuthResponse> {
   const digitsOnly = phoneNumber.replace(/\D/g, "");
-  return apiPost<SendAuthResponse>("v1/common/auth/send", { phoneNumber: digitsOnly });
+  return apiPost<SendAuthResponse>("/v1/common/auth/send", { phoneNumber: digitsOnly });
 }
 
 interface VerifyAuthResponse {
@@ -24,7 +24,7 @@ interface VerifyAuthResponse {
 
 async function verifyAuthCode(phoneNumber: string, authCode: string): Promise<VerifyAuthResponse> {
   const digitsOnly = phoneNumber.replace(/\D/g, "");
-  return apiPost<VerifyAuthResponse>("v1/common/auth/verify", {
+  return apiPost<VerifyAuthResponse>("/v1/common/auth/verify", {
     phoneNumber: digitsOnly,
     authCode: authCode.trim(),
   });
@@ -132,7 +132,7 @@ export default function ReviewRegisterPage() {
       formData.append("phoneNumber", phoneNumber.replace(/\D/g, ""));
       imageFiles.forEach((f) => formData.append("images", f));
 
-      const data = await apiPostForm<{ message?: string }>("v1/user/reviews", formData, {
+      const data = await apiPostForm<{ message?: string }>("/v1/user/reviews", formData, {
         token: verificationToken,
       });
       alert(data?.message ?? "후기가 등록되었습니다. 검토 후 노출됩니다.");

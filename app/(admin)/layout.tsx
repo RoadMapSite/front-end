@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Noto_Sans_KR } from "next/font/google";
 import { LayoutDashboard, Calendar, Users, MessageSquare } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { TOKEN_KEYS_TO_CLEAR } from "@/api/apiClient";
+import { AUTH_TOKEN_KEY, TOKEN_KEYS_TO_CLEAR } from "@/api/apiClient";
 
 const notoSansKr = Noto_Sans_KR({
   subsets: ["latin"],
@@ -33,7 +33,26 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showLoginRequiredModal, setShowLoginRequiredModal] = useState(false);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const isLoginPage = pathname === "/admin/login";
+
+  useEffect(() => {
+    if (isLoginPage) {
+      setHasCheckedAuth(true);
+      return;
+    }
+    const token = typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
+    if (!token) {
+      setShowLoginRequiredModal(true);
+    }
+    setHasCheckedAuth(true);
+  }, [isLoginPage]);
+
+  const handleLoginRequiredConfirm = () => {
+    setShowLoginRequiredModal(false);
+    router.push("/admin/login");
+  };
 
   const handleGoToMainClick = () => {
     setShowConfirmModal(true);
@@ -53,6 +72,35 @@ export default function AdminLayout({
 
   if (isLoginPage) {
     return <div className={fontClassName}>{children}</div>;
+  }
+
+  if (!hasCheckedAuth) {
+    return (
+      <div className={`min-h-screen ${fontClassName} flex items-center justify-center bg-slate-50`}>
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
+      </div>
+    );
+  }
+
+  if (showLoginRequiredModal) {
+    return (
+      <div className={`min-h-screen ${fontClassName} flex items-center justify-center bg-slate-50`}>
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[280px] bg-black/50 animate-[logo-transition-fade-in_0.3s_ease-out]">
+          <div className="mx-4 w-full max-w-xl rounded-xl bg-white p-10 shadow-xl animate-[confirm-modal-appear_0.6s_ease-out]">
+            <p className="mb-8 text-center text-base text-slate-700">관리자 로그인이 필요합니다</p>
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={handleLoginRequiredConfirm}
+                className="rounded-lg bg-slate-700 px-8 py-3 text-base font-medium text-white hover:bg-slate-800 hover:scale-[1.02] hover:shadow-md active:scale-[0.98] transition cursor-pointer"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

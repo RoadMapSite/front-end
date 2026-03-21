@@ -19,6 +19,7 @@ export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showTransition, setShowTransition] = useState(false);
   const [showLoginErrorModal, setShowLoginErrorModal] = useState(false);
+  const [loginErrorMessage, setLoginErrorMessage] = useState("아이디 또는 비밀번호가 올바르지 않습니다");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -37,19 +38,28 @@ export default function AdminLoginPage() {
     }
 
     setIsLoading(true);
+    setShowLoginErrorModal(false);
     try {
-      const data = await apiPost<AdminLoginResponse>("v1/admin/login", {
-        username: usernameTrimmed,
-        password: passwordTrimmed,
-      });
+      const data = await apiPost<AdminLoginResponse>(
+        "/v1/admin/login",
+        {
+          username: usernameTrimmed,
+          password: passwordTrimmed,
+        },
+        { skipUnauthorizedRedirect: true }
+      );
 
       if (data.success && data.accessToken) {
         localStorage.setItem(AUTH_TOKEN_KEY, data.accessToken);
         setShowTransition(true);
       } else {
+        setLoginErrorMessage("아이디 또는 비밀번호가 올바르지 않습니다");
         setShowLoginErrorModal(true);
       }
-    } catch {
+    } catch (err) {
+      const rawMessage = err instanceof Error ? err.message : "로그인에 실패했습니다. 다시 시도해 주세요.";
+      const displayMessage = rawMessage === "존재하지 않는 계정입니다." ? "아이디 또는 비밀번호가 올바르지 않습니다" : rawMessage;
+      setLoginErrorMessage(displayMessage);
       setShowLoginErrorModal(true);
     } finally {
       setIsLoading(false);
@@ -161,7 +171,7 @@ export default function AdminLoginPage() {
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-[280px] bg-black/50 animate-[logo-transition-fade-in_0.3s_ease-out]">
           <div className="mx-4 w-full max-w-xl rounded-xl bg-white p-10 shadow-xl animate-[confirm-modal-appear_0.6s_ease-out]">
             <p className="mb-8 text-center text-base text-slate-700">
-              아이디 또는 비밀번호가 올바르지 않습니다
+              {loginErrorMessage}
             </p>
             <div className="flex justify-center">
               <button

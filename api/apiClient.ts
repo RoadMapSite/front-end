@@ -1,15 +1,39 @@
 /**
  * 공통 fetch 래퍼 - 백엔드 API 호출 시 일관된 설정 적용
- * - Base URL: .env의 NEXT_PUBLIC_API_BASE_URL 사용
+ * - Base URL: .env의 NEXT_PUBLIC_API_BASE_URL 사용 (로컬) 또는 현재 도메인 (Vercel)
  * - Content-Type: application/json 기본 (FormData 사용 시 제외)
  * - credentials: 'include' (CORS + 쿠키/인증 정보)
  * - JWT: token 옵션 또는 localStorage에서 자동 주입 (로그인 연동 대비)
+ *
+ * 환경별 동작:
+ * - 로컬(localhost): NEXT_PUBLIC_API_BASE_URL(예: http://3.225.101.84:8080)로 직접 요청
+ * - Vercel 배포: 현재 도메인(예: https://www.roadmap-edu.kr)으로 요청 → vercel.json Rewrite 적용
  */
 
-const getApiBaseUrl = (): string => {
+/** 경로 정규화: v1/admin/login 또는 /v1/admin/login → 항상 /v1/admin/login 형태 */
+function normalizePath(path: string): string {
+  const trimmed = path.trim().replace(/\/+/g, "/");
+  const withoutLeading = trimmed.replace(/^\/+/, "");
+  return "/" + withoutLeading;
+}
+
+/** Base URL 결정: env에 값이 있으면 사용, 없으면 현재 도메인(브라우저) 또는 빈 문자열(SSR) */
+function getApiBaseUrl(): string {
   if (typeof process === "undefined") return "";
-  return (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "");
-};
+  const envBase = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").trim().replace(/\/$/, "");
+  if (envBase) return envBase;
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+  return "";
+}
+
+/** Base URL + 경로를 슬래시 중복 없이 안전하게 조립 */
+function buildApiUrl(baseUrl: string, path: string): string {
+  const normalizedPath = normalizePath(path);
+  const base = baseUrl.replace(/\/+$/, "");
+  return base + normalizedPath;
+}
 
 /** localStorage에 저장할 토큰 키 (로그인 연동 시 사용) */
 export const AUTH_TOKEN_KEY = "authToken";
@@ -40,6 +64,8 @@ export interface ApiRequestOptions extends Omit<RequestInit, "headers" | "body">
   headers?: Record<string, string>;
   /** JSON body (객체) 또는 FormData - FormData인 경우 Content-Type은 자동 설정됨 */
   body?: Record<string, unknown> | FormData | null;
+  /** 401 시 로그인 페이지 리다이렉트 건너뛰기 (로그인 API 등에서 사용 - 에러를 throw하여 호출부에서 처리) */
+  skipUnauthorizedRedirect?: boolean;
 }
 
 /**
@@ -51,10 +77,12 @@ export interface ApiRequestOptions extends Omit<RequestInit, "headers" | "body">
 export async function apiClient<T = unknown>(path: string, options: ApiRequestOptions = {}): Promise<T> {
   const baseUrl = getApiBaseUrl();
   if (!baseUrl) {
-    throw new Error("API 주소가 설정되지 않았습니다. NEXT_PUBLIC_API_BASE_URL를 .env에 설정해 주세요.");
+    throw new Error(
+      "API 주소를 알 수 없습니다. 브라우저 환경에서는 현재 도메인을 사용하고, 서버 환경에서는 .env에 NEXT_PUBLIC_API_BASE_URL을 설정해 주세요."
+    );
   }
 
-  const { token, headers: customHeaders = {}, body: bodyInput, method = "GET", ...rest } = options;
+  const { token, headers: customHeaders = {}, body: bodyInput, method = "GET", skipUnauthorizedRedirect, ...rest } = options;
 
   const tokenToUse = resolveToken(token);
   const isFormData = bodyInput instanceof FormData;
@@ -74,8 +102,7 @@ export async function apiClient<T = unknown>(path: string, options: ApiRequestOp
 
   const body = isFormData ? bodyInput : bodyInput && typeof bodyInput === "object" ? JSON.stringify(bodyInput) : undefined;
 
-  const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
-  const url = `${baseUrl}/${normalizedPath}`;
+  const url = buildApiUrl(baseUrl, path);
 
   const res = await fetch(url, {
     ...rest,
@@ -89,7 +116,7 @@ export async function apiClient<T = unknown>(path: string, options: ApiRequestOp
   const isJsonResponse = contentType?.includes("application/json");
 
   if (!res.ok) {
-    if (res.status === 401) {
+    if (res.status === 401 && !skipUnauthorizedRedirect) {
       handleUnauthorized();
     }
     const errData = isJsonResponse ? await res.json().catch(() => ({})) : {};

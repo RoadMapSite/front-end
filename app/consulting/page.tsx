@@ -20,7 +20,7 @@ interface SendAuthResponse {
 
 async function sendVerificationCode(phoneNumber: string): Promise<SendAuthResponse> {
   const digitsOnly = phoneNumber.replace(/\D/g, "");
-  return apiPost<SendAuthResponse>("v1/common/auth/send", { phoneNumber: digitsOnly });
+  return apiPost<SendAuthResponse>("/v1/common/auth/send", { phoneNumber: digitsOnly });
 }
 
 /** 인증 검증 API 응답 */
@@ -32,7 +32,7 @@ interface VerifyAuthResponse {
 
 async function verifyAuthCode(phoneNumber: string, authCode: string): Promise<VerifyAuthResponse> {
   const digitsOnly = phoneNumber.replace(/\D/g, "");
-  return apiPost<VerifyAuthResponse>("v1/common/auth/verify", {
+  return apiPost<VerifyAuthResponse>("/v1/common/auth/verify", {
     phoneNumber: digitsOnly,
     authCode: authCode.trim(),
   });
@@ -51,7 +51,7 @@ async function submitConsultation(
   verificationToken: string
 ): Promise<SubmitConsultationResponse> {
   return apiPost<SubmitConsultationResponse>(
-    "v1/user/consultations",
+    "/v1/user/consultations",
     {
       ...payload,
       phoneNumber: payload.phoneNumber.replace(/\D/g, ""),
