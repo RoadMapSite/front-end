@@ -19,22 +19,22 @@ export default function AboutTeacherPage() {
       namePart: "장진웅",
       titlePart: "원장",
       careers: [
-        "전) 대성 학원 수학 강사 (원주 본원)",
+        "전) 대성 학원 수학 전임 (원주 본원)",
         "전) 대성 학원 원장 (강남대 분원)",
-        "전) 막강 학원 원장",
+        "전) 막강 학원 수학 원장",
         "현) 로드맵 입시 관리형 독서실 원장",
       ],
       photo: "/images/about/원장T.jpg",
       accent: "bg-emerald-600",
     },
     {
-      role: "부원장T",
+      role: "원장T",
       namePart: "김현정",
-      titlePart: "부원장",
+      titlePart: "원장",
       careers: [
         "전) 대성 학원 부원장 (강남대 분원)",
-        "전) 막강 학원 부원장",
-        "현) 로드맵 하이엔드 독서실 부원장",
+        "전) 막강 학원 영어 원장",
+        "현) 로드맵 하이엔드 독서실 원장",
       ],
       photo: "/images/about/부원장T_v2.jpg",
       accent: "bg-emerald-600",
@@ -56,7 +56,7 @@ export default function AboutTeacherPage() {
       role: "관리 T",
       namePart: "이종훈",
       titlePart: "선생님",
-      careers: [],
+      careers: ["로드맵 공식 통합 웹/관리자 플랫폼 런칭", "N수관 관리 주임"],
       photo: "/images/about/종훈T.jpg",
       accent: "bg-emerald-600",
     },
@@ -64,7 +64,7 @@ export default function AboutTeacherPage() {
       role: "관리 T",
       namePart: "김나경",
       titlePart: "선생님",
-      careers: [],
+      careers: ["로드맵 관리 시스템 매니저", "N수관 관리 주임"],
       photo: "/images/about/나경T.jpg",
       accent: "bg-emerald-600",
     },
@@ -75,7 +75,7 @@ export default function AboutTeacherPage() {
       <PageHero
         imageUrl="/images/place/n/n_p22.jpg"
         heroStyle={{ backgroundPosition: "75% 47%", backgroundSize: "cover" }}
-        lines={["로드맵의", "관리 T를 소개합니다"]}
+        lines={["로드맵 관리 Team을", "소개합니다"]}
         crumbs={[
           { label: "ABOUT 로드맵" },
           { label: "관리T 소개", href: "/about/teacher" },
