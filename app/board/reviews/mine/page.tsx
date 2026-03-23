@@ -113,7 +113,7 @@ export default function MyReviewsPage() {
       const token = data.verificationToken;
       setVerificationToken(token);
       setPhoneVerified(true);
-      if (typeof window !== "undefined") localStorage.setItem(AUTH_TOKEN_KEY, token);
+      if (token && typeof window !== "undefined") localStorage.setItem(AUTH_TOKEN_KEY, token);
       if (data.message) alert(data.message);
     } catch (err) {
       setVerifyError(err instanceof Error ? err.message : "인증에 실패했습니다.");
@@ -219,22 +219,24 @@ export default function MyReviewsPage() {
                 {sendCodeError && <p className="text-sm text-red-600">{sendCodeError}</p>}
                 {verificationSent && (
                   <>
-                    <input
-                      type="text"
-                      placeholder="인증번호를 입력해주세요"
-                      value={verificationCode}
-                      onChange={(e) => setVerificationCode(e.target.value)}
-                      className="w-full py-2.5 px-3.5 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 bg-gray-50/50"
-                    />
+                    <div className="flex rounded-xl border border-slate-200 overflow-hidden bg-gray-50/50">
+                      <input
+                        type="text"
+                        placeholder="인증번호를 입력해주세요"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value)}
+                        className="flex-1 py-2.5 px-3.5 border-0 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-0 bg-transparent"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleVerifyCode}
+                        disabled={verifyLoading || !verificationCode.trim()}
+                        className="shrink-0 py-2.5 px-3.5 bg-gray-100 text-slate-600 text-sm font-medium hover:bg-gray-200 whitespace-nowrap border-l border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {verifyLoading ? "확인 중…" : "인증하기"}
+                      </button>
+                    </div>
                     {verifyError && <p className="text-sm text-red-600">{verifyError}</p>}
-                    <button
-                      type="button"
-                      onClick={handleVerifyCode}
-                      disabled={verifyLoading || !verificationCode.trim()}
-                      className="w-full py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-600 text-sm font-medium hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {verifyLoading ? "확인 중…" : "인증하기"}
-                    </button>
                   </>
                 )}
                 <div className="mt-4 pt-4 border-t border-slate-200">

@@ -156,7 +156,7 @@ export default function ConsultingPage() {
       const token = data.verificationToken;
       setVerificationToken(token);
       setPhoneVerified(true);
-      if (typeof window !== "undefined") localStorage.setItem(AUTH_TOKEN_KEY, token);
+      if (token && typeof window !== "undefined") localStorage.setItem(AUTH_TOKEN_KEY, token);
       if (data.message) alert(data.message);
     } catch (err) {
       setVerifyError(err instanceof Error ? err.message : "인증에 실패했습니다.");
@@ -406,35 +406,35 @@ export default function ConsultingPage() {
               {sendCodeError && (
                 <p className="text-sm text-red-600">{sendCodeError}</p>
               )}
-              <input
-                type="text"
-                placeholder="인증번호를 입력해주세요"
-                value={verificationCode}
-                onChange={(e) => {
-                  setVerificationCode(e.target.value);
-                  setPhoneVerified(false);
-                  setVerificationToken(null);
-                }}
-                disabled={phoneVerified}
-                className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50 disabled:bg-gray-50 disabled:text-gray-500"
-              />
-              {verifyError && (
-                <p className="text-sm text-red-600">{verifyError}</p>
-              )}
               {verificationSent && (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleVerifyCode}
-                    disabled={phoneVerified || verifyLoading || !verificationCode.trim()}
-                    className="cursor-pointer py-3 px-5 rounded-xl border border-gray-200 bg-gray-100 text-gray-600 text-base font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                  >
-                    {phoneVerified ? "인증 완료" : verifyLoading ? "확인 중…" : "인증하기"}
-                  </button>
+                <>
+                  <div className="flex rounded-xl border border-gray-200 overflow-hidden bg-gray-50/50">
+                    <input
+                      type="text"
+                      placeholder="인증번호를 입력해주세요"
+                      value={verificationCode}
+                      onChange={(e) => {
+                        setVerificationCode(e.target.value);
+                        setPhoneVerified(false);
+                        setVerificationToken(null);
+                      }}
+                      disabled={phoneVerified}
+                      className="flex-1 py-3 px-4 border-0 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-0 bg-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVerifyCode}
+                      disabled={phoneVerified || verifyLoading || !verificationCode.trim()}
+                      className="shrink-0 cursor-pointer py-3 px-5 bg-gray-100 text-gray-600 text-base font-medium hover:bg-gray-200 whitespace-nowrap border-l border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {phoneVerified ? "인증 완료" : verifyLoading ? "확인 중…" : "인증하기"}
+                    </button>
+                  </div>
+                  {verifyError && <p className="text-sm text-red-600">{verifyError}</p>}
                   {phoneVerified && (
                     <p className="text-sm text-slate-600 font-medium">휴대폰 번호가 인증되었습니다.</p>
                   )}
-                </div>
+                </>
               )}
             </div>
 
