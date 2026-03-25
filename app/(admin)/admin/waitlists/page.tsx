@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Bell, Users } from "lucide-react";
-
-type Status = "WAITING" | "CONTACTED" | "REGISTERED" | "CANCELED";
+import {
+  fetchAdminWaitlists,
+  type Waitlist,
+  type WaitlistStatus,
+} from "@/api/adminWaitlists";
 
 type TabId =
   | "SEM1_N"
@@ -20,20 +23,9 @@ const TABS = [
   { id: "SEM2_HI" as const, label: "2학기 하이엔드관", season: "SEMESTER_2" as const, branch: "Hi-end" as const },
   { id: "SUMMER" as const, label: "여름캠프", season: "SUMMER" as const, branch: null },
   { id: "WINTER" as const, label: "겨울캠프", season: "WINTER" as const, branch: null },
-];
+] as const;
 
-type WaitlistItem = {
-  id: number;
-  name: string;
-  age: number;
-  phone: string;
-  appliedAt: string;
-  status: Status;
-  season: "SEMESTER_1" | "SEMESTER_2" | "SUMMER" | "WINTER";
-  branch: "N" | "Hi-end" | null;
-};
-
-const STATUS_LABELS: Record<Status, string> = {
+const STATUS_LABELS: Record<WaitlistStatus, string> = {
   WAITING: "대기 중",
   CONTACTED: "연락 완료",
   REGISTERED: "등록 완료",
@@ -41,7 +33,7 @@ const STATUS_LABELS: Record<Status, string> = {
 };
 
 const STATUS_STYLES: Record<
-  Status,
+  WaitlistStatus,
   { bg: string; text: string; border: string }
 > = {
   WAITING: {
@@ -66,38 +58,61 @@ const STATUS_STYLES: Record<
   },
 };
 
-const DUMMY_DATA: WaitlistItem[] = [
-  { id: 1, name: "이종훈", age: 19, phone: "010-1234-5678", appliedAt: "2025-02-20", status: "WAITING", season: "SEMESTER_1", branch: "N" },
-  { id: 2, name: "강찬", age: 20, phone: "010-2345-6789", appliedAt: "2025-02-21", status: "CONTACTED", season: "SEMESTER_1", branch: "N" },
-  { id: 3, name: "구희원", age: 18, phone: "010-3456-7890", appliedAt: "2025-02-22", status: "REGISTERED", season: "SEMESTER_1", branch: "N" },
-  { id: 4, name: "김나경", age: 21, phone: "010-4567-8901", appliedAt: "2025-02-23", status: "WAITING", season: "SEMESTER_1", branch: "N" },
-  { id: 5, name: "김동호", age: 19, phone: "010-5678-9012", appliedAt: "2025-02-24", status: "CANCELED", season: "SEMESTER_1", branch: "Hi-end" },
-  { id: 6, name: "김정범", age: 20, phone: "010-6789-0123", appliedAt: "2025-02-25", status: "CONTACTED", season: "SEMESTER_2", branch: "N" },
-  { id: 8, name: "모정원", age: 18, phone: "010-8901-2345", appliedAt: "2025-02-26", status: "REGISTERED", season: "SEMESTER_2", branch: "Hi-end" },
-  { id: 9, name: "박예은", age: 21, phone: "010-9012-3456", appliedAt: "2025-02-27", status: "WAITING", season: "SUMMER", branch: null },
-  { id: 10, name: "박인서", age: 19, phone: "010-0123-4567", appliedAt: "2025-02-27", status: "CONTACTED", season: "SUMMER", branch: null },
-  { id: 11, name: "박희원", age: 20, phone: "010-1111-2222", appliedAt: "2025-02-28", status: "WAITING", season: "SUMMER", branch: null },
-  { id: 12, name: "이하린", age: 18, phone: "010-3333-4444", appliedAt: "2025-02-28", status: "REGISTERED", season: "WINTER", branch: null },
-  { id: 13, name: "황예원", age: 21, phone: "010-5555-6666", appliedAt: "2025-02-28", status: "WAITING", season: "WINTER", branch: null },
-];
+function formatRegisteredAt(iso: string): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso.slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function formatPhoneDisplay(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length === 11) {
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+  return phone;
+}
 
 export default function WaitlistsPage() {
   const [activeTab, setActiveTab] = useState<TabId>("SEM1_N");
-  const [items, setItems] = useState<WaitlistItem[]>(DUMMY_DATA);
-  const [selectedStudent, setSelectedStudent] = useState<WaitlistItem | null>(null);
-  const [pendingStatus, setPendingStatus] = useState<Status | null>(null);
+  const [items, setItems] = useState<Waitlist[]>([]);
+  const [loadState, setLoadState] = useState<"idle" | "loading" | "error">("idle");
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Waitlist | null>(null);
+  const [pendingStatus, setPendingStatus] = useState<WaitlistStatus | null>(null);
 
-  const currentTabConfig = TABS.find((t) => t.id === activeTab)!;
+  const loadWaitlists = useCallback(async () => {
+    const tab = TABS.find((t) => t.id === activeTab)!;
+    setLoadState("loading");
+    setLoadError(null);
+    try {
+      const data = await fetchAdminWaitlists(
+        tab.branch === null
+          ? { season: tab.season }
+          : { season: tab.season, branch: tab.branch }
+      );
+      const list = data.waitlists ?? [];
+      list.sort((a, b) => a.waitingNumber - b.waitingNumber);
+      setItems(list);
+      setLoadState("idle");
+    } catch (e) {
+      setItems([]);
+      setLoadState("error");
+      setLoadError(e instanceof Error ? e.message : "목록을 불러오지 못했습니다.");
+    }
+  }, [activeTab]);
 
-  const filteredItems = useMemo(() => {
-    return items.filter((item) => {
-      if (item.season !== currentTabConfig.season) return false;
-      if (currentTabConfig.branch === null) return item.branch === null;
-      return item.branch === currentTabConfig.branch;
-    });
-  }, [items, currentTabConfig]);
+  useEffect(() => {
+    void loadWaitlists();
+  }, [loadWaitlists]);
 
-  const handleStatusSelectChange = (student: WaitlistItem, newStatus: Status) => {
+  const handleStatusSelectChange = (student: Waitlist, newStatus: WaitlistStatus) => {
     if (student.status === newStatus) return;
     setSelectedStudent(student);
     setPendingStatus(newStatus);
@@ -112,10 +127,14 @@ export default function WaitlistsPage() {
     if (!selectedStudent || !pendingStatus) return;
     setItems((prev) =>
       prev.map((item) =>
-        item.id === selectedStudent.id ? { ...item, status: pendingStatus } : item
+        item.waitlistId === selectedStudent.waitlistId
+          ? { ...item, status: pendingStatus }
+          : item
       )
     );
-    console.log(`[API 호출] ${selectedStudent.id}번 학생 상태 ${pendingStatus}로 PATCH 요청 (문자 발송 됨)`);
+    console.log(
+      `[API 호출] waitlistId ${selectedStudent.waitlistId} 상태 ${pendingStatus}로 PATCH 요청 (문자 발송 됨)`
+    );
     closeModal();
   };
 
@@ -131,6 +150,14 @@ export default function WaitlistsPage() {
         <p className="mt-2 text-slate-600">
           등록 대기 학생들을 조회하고 상태를 최신화합니다.
         </p>
+        {loadState === "loading" && (
+          <p className="mt-2 text-sm text-slate-500">목록을 불러오는 중…</p>
+        )}
+        {loadState === "error" && loadError && (
+          <p className="mt-2 text-sm text-red-600" role="alert">
+            {loadError}
+          </p>
+        )}
       </div>
 
       {/* Tab Menu */}
@@ -138,6 +165,7 @@ export default function WaitlistsPage() {
         {TABS.map((tab) => (
           <button
             key={tab.id}
+            type="button"
             onClick={() => setActiveTab(tab.id)}
             className={`
               flex-1 min-w-0 cursor-pointer rounded-md px-4 py-2.5 text-sm font-medium
@@ -180,7 +208,16 @@ export default function WaitlistsPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredItems.length === 0 ? (
+            {loadState === "loading" ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-6 py-16 text-center text-sm text-slate-500"
+                >
+                  불러오는 중…
+                </td>
+              </tr>
+            ) : items.length === 0 ? (
               <tr>
                 <td
                   colSpan={6}
@@ -190,27 +227,27 @@ export default function WaitlistsPage() {
                 </td>
               </tr>
             ) : (
-              filteredItems.map((item, index) => (
+              items.map((item) => (
                 <tr
-                  key={item.id}
+                  key={item.waitlistId}
                   className="border-b border-slate-100 last:border-0 transition-colors hover:bg-gray-50"
                 >
                   <td className="px-6 py-4 text-sm font-medium text-slate-700">
-                    {index + 1}
+                    {item.waitingNumber}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-800">{item.name}</td>
                   <td className="px-6 py-4 text-sm text-slate-600">{item.age}</td>
                   <td className="px-6 py-4 text-sm text-slate-600">
-                    {item.phone}
+                    {formatPhoneDisplay(item.phoneNumber)}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-600">
-                    {item.appliedAt}
+                    {formatRegisteredAt(item.registeredAt)}
                   </td>
                   <td className="px-6 py-4">
                     <select
                       value={item.status}
                       onChange={(e) =>
-                        handleStatusSelectChange(item, e.target.value as Status)
+                        handleStatusSelectChange(item, e.target.value as WaitlistStatus)
                       }
                       className={`
                         min-w-[120px] max-w-[140px] rounded-lg border px-3 py-2 text-sm font-medium
@@ -219,8 +256,9 @@ export default function WaitlistsPage() {
                         ${STATUS_STYLES[item.status].text}
                         ${STATUS_STYLES[item.status].border}
                       `}
+                      aria-label={`${item.name} 상태`}
                     >
-                      {(Object.keys(STATUS_LABELS) as Status[]).map((status) => (
+                      {(Object.keys(STATUS_LABELS) as WaitlistStatus[]).map((status) => (
                         <option key={status} value={status}>
                           {STATUS_LABELS[status]}
                         </option>
