@@ -87,7 +87,7 @@ export default function ReviewsPage() {
         setToastExiting(false);
         toastTimeoutRef.current = null;
       }, 700);
-    }, 1000);
+    }, 2500);
   }, []);
 
   useEffect(() => {

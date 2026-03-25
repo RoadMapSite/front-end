@@ -1,4 +1,4 @@
-import { apiGet } from "@/api/apiClient";
+import { apiGet, apiPatch } from "@/api/apiClient";
 
 export type WaitlistSeason = "SEMESTER_1" | "SEMESTER_2" | "SUMMER" | "WINTER";
 
@@ -52,4 +52,29 @@ export async function fetchAdminWaitlists(
       "Content-Type": "application/json",
     },
   });
+}
+
+export interface PatchWaitlistStatusResponse {
+  success: boolean;
+  message?: string;
+}
+
+/**
+ * PATCH /v1/admin/waitlists/{waitlistId}/status
+ * Body: { status: WaitlistStatus }
+ */
+export async function patchAdminWaitlistStatus(
+  waitlistId: number,
+  status: WaitlistStatus
+): Promise<PatchWaitlistStatusResponse | null> {
+  return apiPatch<PatchWaitlistStatusResponse | null>(
+    `/v1/admin/waitlists/${waitlistId}/status`,
+    { status },
+    {
+      useRelativePath: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
 }

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Bell, Users } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Bell, Loader2, Users } from "lucide-react";
 import {
   fetchAdminWaitlists,
+  patchAdminWaitlistStatus,
   type Waitlist,
   type WaitlistStatus,
 } from "@/api/adminWaitlists";
@@ -84,13 +85,42 @@ export default function WaitlistsPage() {
   const [items, setItems] = useState<Waitlist[]>([]);
   const [loadState, setLoadState] = useState<"idle" | "loading" | "error">("idle");
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [updatingWaitlistId, setUpdatingWaitlistId] = useState<number | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Waitlist | null>(null);
   const [pendingStatus, setPendingStatus] = useState<WaitlistStatus | null>(null);
 
-  const loadWaitlists = useCallback(async () => {
+  const modalOpen = selectedStudent !== null && pendingStatus !== null;
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastExiting, setToastExiting] = useState(false);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showToast = useCallback((message: string) => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setToastExiting(false);
+    setToastMessage(message);
+    toastTimeoutRef.current = setTimeout(() => {
+      setToastExiting(true);
+      toastTimeoutRef.current = setTimeout(() => {
+        setToastMessage(null);
+        setToastExiting(false);
+        toastTimeoutRef.current = null;
+      }, 700);
+    }, 2500);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    };
+  }, []);
+
+  const loadWaitlists = useCallback(async (opts?: { silent?: boolean }) => {
     const tab = TABS.find((t) => t.id === activeTab)!;
-    setLoadState("loading");
-    setLoadError(null);
+    const silent = opts?.silent === true;
+    if (!silent) {
+      setLoadState("loading");
+      setLoadError(null);
+    }
     try {
       const data = await fetchAdminWaitlists(
         tab.branch === null
@@ -100,13 +130,20 @@ export default function WaitlistsPage() {
       const list = data.waitlists ?? [];
       list.sort((a, b) => a.waitingNumber - b.waitingNumber);
       setItems(list);
+      setLoadError(null);
       setLoadState("idle");
     } catch (e) {
-      setItems([]);
-      setLoadState("error");
-      setLoadError(e instanceof Error ? e.message : "목록을 불러오지 못했습니다.");
+      if (!silent) {
+        setItems([]);
+        setLoadState("error");
+        setLoadError(e instanceof Error ? e.message : "목록을 불러오지 못했습니다.");
+      } else {
+        showToast(
+          e instanceof Error ? e.message : "목록을 새로고침하지 못했습니다."
+        );
+      }
     }
-  }, [activeTab]);
+  }, [activeTab, showToast]);
 
   useEffect(() => {
     void loadWaitlists();
@@ -119,23 +156,36 @@ export default function WaitlistsPage() {
   };
 
   const closeModal = () => {
+    if (updatingWaitlistId !== null) return;
     setSelectedStudent(null);
     setPendingStatus(null);
   };
 
-  const handleConfirm = () => {
+  const handleConfirmStatusChange = async () => {
     if (!selectedStudent || !pendingStatus) return;
-    setItems((prev) =>
-      prev.map((item) =>
-        item.waitlistId === selectedStudent.waitlistId
-          ? { ...item, status: pendingStatus }
-          : item
-      )
-    );
-    console.log(
-      `[API 호출] waitlistId ${selectedStudent.waitlistId} 상태 ${pendingStatus}로 PATCH 요청 (문자 발송 됨)`
-    );
-    closeModal();
+    setUpdatingWaitlistId(selectedStudent.waitlistId);
+    try {
+      const data = await patchAdminWaitlistStatus(
+        selectedStudent.waitlistId,
+        pendingStatus
+      );
+
+      if (data && data.success === false) {
+        showToast(data.message ?? "상태 변경에 실패했습니다.");
+        return;
+      }
+
+      showToast(data?.message ?? "상태가 변경되었습니다.");
+      setSelectedStudent(null);
+      setPendingStatus(null);
+      await loadWaitlists({ silent: true });
+    } catch (e) {
+      showToast(
+        e instanceof Error ? e.message : "상태 변경 요청에 실패했습니다."
+      );
+    } finally {
+      setUpdatingWaitlistId(null);
+    }
   };
 
   return (
@@ -151,7 +201,20 @@ export default function WaitlistsPage() {
           등록 대기 학생들을 조회하고 상태를 최신화합니다.
         </p>
         {loadState === "loading" && (
-          <p className="mt-2 text-sm text-slate-500">목록을 불러오는 중…</p>
+          <div
+            className="mt-4 flex min-h-[3.5rem] flex-col items-center justify-center gap-2.5"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <Loader2
+              className="h-6 w-6 shrink-0 animate-spin text-slate-700"
+              strokeWidth={2}
+              aria-hidden
+            />
+            <span className="text-center text-sm font-medium text-slate-600">
+              목록을 불러오는 중…
+            </span>
+          </div>
         )}
         {loadState === "error" && loadError && (
           <p className="mt-2 text-sm text-red-600" role="alert">
@@ -167,9 +230,11 @@ export default function WaitlistsPage() {
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
+            disabled={loadState === "loading" || modalOpen || updatingWaitlistId !== null}
             className={`
               flex-1 min-w-0 cursor-pointer rounded-md px-4 py-2.5 text-sm font-medium
               transition-all duration-200 ease-out
+              disabled:cursor-not-allowed disabled:opacity-60
               ${
                 activeTab === tab.id
                   ? "bg-slate-800 text-white shadow-sm"
@@ -183,7 +248,12 @@ export default function WaitlistsPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden transition-opacity duration-200">
+      <div
+        className={`rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden transition-opacity duration-200 ${
+          loadState === "loading" ? "min-h-[min(50vh,22rem)]" : ""
+        }`}
+        aria-busy={loadState === "loading"}
+      >
         <table className="w-full">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50/80">
@@ -210,11 +280,17 @@ export default function WaitlistsPage() {
           <tbody>
             {loadState === "loading" ? (
               <tr>
-                <td
-                  colSpan={6}
-                  className="px-6 py-16 text-center text-sm text-slate-500"
-                >
-                  불러오는 중…
+                <td colSpan={6} className="p-0 align-middle">
+                  <div className="flex min-h-[min(42vh,18rem)] flex-col items-center justify-center gap-4 px-6 py-12">
+                    <Loader2
+                      className="h-10 w-10 animate-spin text-slate-700"
+                      strokeWidth={2}
+                      aria-hidden
+                    />
+                    <p className="text-center text-sm font-medium text-slate-600">
+                      목록을 불러오는 중…
+                    </p>
+                  </div>
                 </td>
               </tr>
             ) : items.length === 0 ? (
@@ -227,73 +303,92 @@ export default function WaitlistsPage() {
                 </td>
               </tr>
             ) : (
-              items.map((item) => (
-                <tr
-                  key={item.waitlistId}
-                  className="border-b border-slate-100 last:border-0 transition-colors hover:bg-gray-50"
-                >
-                  <td className="px-6 py-4 text-sm font-medium text-slate-700">
-                    {item.waitingNumber}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-800">{item.name}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{item.age}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">
-                    {formatPhoneDisplay(item.phoneNumber)}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">
-                    {formatRegisteredAt(item.registeredAt)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <select
-                      value={item.status}
-                      onChange={(e) =>
-                        handleStatusSelectChange(item, e.target.value as WaitlistStatus)
-                      }
-                      className={`
+              items.map((item) => {
+                const rowBusy =
+                  updatingWaitlistId === item.waitlistId || modalOpen;
+                return (
+                  <tr
+                    key={item.waitlistId}
+                    className="border-b border-slate-100 last:border-0 transition-colors hover:bg-gray-50"
+                  >
+                    <td className="px-6 py-4 text-sm font-medium text-slate-700">
+                      {item.waitingNumber}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-800">{item.name}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{item.age}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">
+                      {formatPhoneDisplay(item.phoneNumber)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-600">
+                      {formatRegisteredAt(item.registeredAt)}
+                    </td>
+                    <td className="px-6 py-4">
+                      <select
+                        value={item.status}
+                        disabled={rowBusy}
+                        onChange={(e) =>
+                          handleStatusSelectChange(
+                            item,
+                            e.target.value as WaitlistStatus
+                          )
+                        }
+                        className={`
                         min-w-[120px] max-w-[140px] rounded-lg border px-3 py-2 text-sm font-medium
                         cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-300
+                        disabled:cursor-not-allowed disabled:opacity-60
                         ${STATUS_STYLES[item.status].bg}
                         ${STATUS_STYLES[item.status].text}
                         ${STATUS_STYLES[item.status].border}
                       `}
-                      aria-label={`${item.name} 상태`}
-                    >
-                      {(Object.keys(STATUS_LABELS) as WaitlistStatus[]).map((status) => (
-                        <option key={status} value={status}>
-                          {STATUS_LABELS[status]}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                </tr>
-              ))
+                        aria-label={`${item.name} 상태`}
+                        aria-busy={rowBusy}
+                      >
+                        {(Object.keys(STATUS_LABELS) as WaitlistStatus[]).map((status) => (
+                          <option key={status} value={status}>
+                            {STATUS_LABELS[status]}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
       </div>
 
-      {/* Confirm Modal */}
       {selectedStudent && pendingStatus && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-[logo-transition-fade-in_0.25s_ease-out]"
           onClick={closeModal}
           role="dialog"
           aria-modal="true"
-          aria-labelledby="modal-title"
+          aria-labelledby="waitlist-status-modal-title"
         >
           <div
             className="mx-4 w-full max-w-lg rounded-xl bg-white p-6 shadow-xl animate-[confirm-modal-appear_0.6s_ease-out]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex w-12 h-12 mx-auto items-center justify-center rounded-full bg-blue-50 p-3 text-blue-500">
-              <Bell className="w-6 h-6" strokeWidth={2} />
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 p-3 text-blue-500">
+              <Bell className="h-6 w-6" strokeWidth={2} aria-hidden />
             </div>
-            <h2 id="modal-title" className="mt-4 text-center text-xl font-bold text-gray-900">
+            <h2
+              id="waitlist-status-modal-title"
+              className="mt-4 text-center text-xl font-bold text-gray-900"
+            >
               등록 상태 변경 확인
             </h2>
             <p className="mt-3 text-center text-slate-600">
-              정말 <span className="font-semibold text-blue-600">{selectedStudent.name}</span> 학생의 대기 상태를{" "}
-              <span className="font-semibold text-blue-600">{STATUS_LABELS[pendingStatus]}</span>로 변경하시겠습니까?
+              정말{" "}
+              <span className="font-semibold text-blue-600">
+                {selectedStudent.name}
+              </span>{" "}
+              학생의 대기 상태를{" "}
+              <span className="font-semibold text-blue-600">
+                {STATUS_LABELS[pendingStatus]}
+              </span>
+              로 변경하시겠습니까?
             </p>
             <div className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-red-50 p-3 text-sm font-medium text-red-600">
               변경 시 학생에게 안내 문자가 자동 발송됩니다.
@@ -301,20 +396,36 @@ export default function WaitlistsPage() {
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
-                onClick={handleConfirm}
-                className="flex-1 cursor-pointer rounded-xl bg-blue-600 px-4 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-blue-700 active:scale-[0.98]"
+                onClick={() => void handleConfirmStatusChange()}
+                disabled={updatingWaitlistId !== null}
+                className="flex-1 cursor-pointer rounded-xl bg-slate-800 px-4 py-3 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:bg-slate-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                변경 확인
+                {updatingWaitlistId !== null ? "처리 중…" : "확인"}
               </button>
               <button
                 type="button"
                 onClick={closeModal}
-                className="flex-1 cursor-pointer rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-200 active:scale-[0.98]"
+                disabled={updatingWaitlistId !== null}
+                className="flex-1 cursor-pointer rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                취소
+                닫기
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {(toastMessage || toastExiting) && (
+        <div
+          className={`fixed bottom-5 right-5 z-[60] rounded-lg bg-slate-800 px-5 py-3.5 text-sm font-medium text-white shadow-lg ${
+            toastExiting
+              ? "translate-x-4 opacity-0 pointer-events-none transition-all duration-700 ease-out"
+              : "animate-[toast-slide-in_0.5s_ease-out]"
+          }`}
+          role="status"
+          aria-live="polite"
+        >
+          {toastMessage}
         </div>
       )}
     </div>
