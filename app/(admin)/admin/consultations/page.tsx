@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { Calendar } from "lucide-react";
+import { Calendar, Loader2 } from "lucide-react";
 import ConsultationCalendar from "@/components/ConsultationCalendar";
 import {
   fetchAdminConsultations,
@@ -155,7 +155,20 @@ export default function ConsultationsPage() {
           좌측 달력에서 날짜를 선택하면 해당 날짜의 N수생관·하이엔드관 상담 일정을 함께 확인할 수 있습니다.
         </p>
         {monthLoadState === "loading" && (
-          <p className="mt-2 text-sm text-slate-500">달력 예약 현황을 불러오는 중…</p>
+          <div
+            className="mt-4 flex min-h-[3.5rem] flex-col items-center justify-center gap-2.5"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <Loader2
+              className="h-6 w-6 shrink-0 animate-spin text-slate-700"
+              strokeWidth={2}
+              aria-hidden
+            />
+            <span className="text-center text-sm font-medium text-slate-600">
+              달력 예약 현황을 불러오는 중…
+            </span>
+          </div>
         )}
         {monthLoadState === "error" && monthError && (
           <p className="mt-2 text-sm text-red-600" role="alert">
@@ -178,7 +191,14 @@ export default function ConsultationsPage() {
           </div>
         </div>
 
-        <div className="flex-1 min-w-0 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div
+          className={`flex-1 min-w-0 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden ${
+            selectedDate && dayLoadState === "loading"
+              ? "min-h-[min(50vh,22rem)]"
+              : ""
+          }`}
+          aria-busy={selectedDate !== null && dayLoadState === "loading"}
+        >
           <div className="shrink-0 px-6 py-4 border-b border-slate-200 bg-slate-50/80">
             <h2 className="text-lg font-semibold text-slate-800">
               {displayDate ?? "날짜를 선택해 주세요"}
@@ -192,7 +212,19 @@ export default function ConsultationsPage() {
                 </p>
               )}
             {selectedDate && dayLoadState === "loading" && (
-              <p className="mt-1 text-sm text-slate-500">상담 일정을 불러오는 중…</p>
+              <div
+                className="mt-2 flex min-h-[2.75rem] flex-row items-center justify-start gap-2"
+                aria-live="polite"
+              >
+                <Loader2
+                  className="h-5 w-5 shrink-0 animate-spin text-slate-700"
+                  strokeWidth={2}
+                  aria-hidden
+                />
+                <span className="text-sm font-medium text-slate-600">
+                  상담 일정을 불러오는 중…
+                </span>
+              </div>
             )}
             {selectedDate && dayLoadState === "error" && dayError && (
               <p className="mt-1 text-sm text-red-600" role="alert">
@@ -206,8 +238,15 @@ export default function ConsultationsPage() {
                 좌측 달력에서 날짜를 선택해 주세요
               </div>
             ) : dayLoadState === "loading" ? (
-              <div className="flex items-center justify-center h-full text-slate-400 text-sm">
-                불러오는 중…
+              <div className="flex min-h-[min(42vh,18rem)] flex-col items-center justify-center gap-4 px-6 py-12">
+                <Loader2
+                  className="h-10 w-10 animate-spin text-slate-700"
+                  strokeWidth={2}
+                  aria-hidden
+                />
+                <p className="text-center text-sm font-medium text-slate-600">
+                  상담 일정을 불러오는 중…
+                </p>
               </div>
             ) : dayLoadState === "error" ? (
               <div className="flex items-center justify-center h-full text-red-600 text-sm px-4 text-center">

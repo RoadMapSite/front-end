@@ -161,6 +161,11 @@ export async function apiGet<T = unknown>(path: string, options?: Omit<ApiReques
   return apiClient<T>(path, { ...options, method: "GET" });
 }
 
+/** 편의 메서드: PATCH (JSON) */
+export async function apiPatch<T = unknown>(path: string, body?: Record<string, unknown> | null, options?: ApiRequestOptions): Promise<T> {
+  return apiClient<T>(path, { ...options, method: "PATCH", body: body ?? undefined });
+}
+
 /** 편의 메서드: POST (JSON) */
 export async function apiPost<T = unknown>(path: string, body?: Record<string, unknown> | null, options?: ApiRequestOptions): Promise<T> {
   return apiClient<T>(path, { ...options, method: "POST", body: body ?? undefined });
