@@ -69,3 +69,18 @@ export async function patchAdminReviewStatus(
     { useRelativePath: true }
   );
 }
+
+/**
+ * PATCH /v1/admin/reviews/{reviewId}/top
+ * Body 키는 `isTop` (프론트 목록 필드명 `isBest`와 매핑)
+ */
+export async function patchAdminReviewTop(
+  reviewId: number,
+  isTop: boolean
+): Promise<void> {
+  await apiPatch(
+    `/v1/admin/reviews/${reviewId}/top`,
+    { isTop },
+    { useRelativePath: true }
+  );
+}

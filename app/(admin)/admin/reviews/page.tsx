@@ -6,6 +6,7 @@ import {
   fetchAdminReviews,
   fetchAdminReviewDetail,
   patchAdminReviewStatus,
+  patchAdminReviewTop,
   type AdminReviewListItem,
   type AdminReviewDetail,
   type AdminReviewsResponse,
@@ -77,6 +78,7 @@ export default function ReviewsPage() {
   const [toastExiting, setToastExiting] = useState(false);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const approvalRequestRef = useRef<Set<number>>(new Set());
+  const topRequestRef = useRef<Set<number>>(new Set());
 
   const showToast = useCallback((message: string) => {
     if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
@@ -212,15 +214,17 @@ export default function ReviewsPage() {
     }
   };
 
-  const handleExcellentToggle = (reviewId: number) => {
-    let nextBest = false;
-    let didToggle = false;
+  const handleExcellentToggle = async (reviewId: number) => {
+    const row = reviewData?.reviews.find((r) => r.reviewId === reviewId);
+    if (!row || topRequestRef.current.has(reviewId)) return;
+
+    const previousBest = row.isBest;
+    const nextBest = !previousBest;
+    const isTop = nextBest;
+
+    topRequestRef.current.add(reviewId);
     setReviewData((prev) => {
       if (!prev) return prev;
-      const row = prev.reviews.find((r) => r.reviewId === reviewId);
-      if (!row) return prev;
-      didToggle = true;
-      nextBest = !row.isBest;
       return {
         ...prev,
         reviews: prev.reviews.map((r) =>
@@ -228,15 +232,42 @@ export default function ReviewsPage() {
         ),
       };
     });
-    if (!didToggle) return;
-    console.log(
-      `[API 호출] PATCH /reviews/${reviewId} - 우수 후기: ${nextBest ? "설정" : "해제"}`
+    setSelectedReview((s) =>
+      s?.reviewId === reviewId ? { ...s, isBest: nextBest } : s
     );
-    showToast(
-      nextBest
-        ? "✅ 우수 후기가 지정되었습니다."
-        : "✅ 우수 후기가 해제되었습니다."
+    setReviewDetail((d) =>
+      d?.reviewId === reviewId ? { ...d, isBest: nextBest } : d
     );
+
+    try {
+      await patchAdminReviewTop(reviewId, isTop);
+      showToast(
+        isTop
+          ? "우수 후기가 지정되었습니다."
+          : "우수 후기가 해제되었습니다."
+      );
+    } catch (e) {
+      const msg =
+        e instanceof Error ? e.message : "우수 후기 설정을 변경하지 못했습니다.";
+      showToast(msg);
+      setReviewData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          reviews: prev.reviews.map((r) =>
+            r.reviewId === reviewId ? { ...r, isBest: previousBest } : r
+          ),
+        };
+      });
+      setSelectedReview((s) =>
+        s?.reviewId === reviewId ? { ...s, isBest: previousBest } : s
+      );
+      setReviewDetail((d) =>
+        d?.reviewId === reviewId ? { ...d, isBest: previousBest } : d
+      );
+    } finally {
+      topRequestRef.current.delete(reviewId);
+    }
   };
 
   const listReviews = reviewData?.reviews ?? [];
