@@ -6,10 +6,10 @@ export default function MentoringPricePage() {
       <PageHero
         imageUrl="/images/teach.jpg"
         heroStyle={{ backgroundPosition: "center 60%" }}
-        lines={["1:1 멘토·플랜·학업관리", "이용료 안내"]}
+        lines={["1:1 멘토·플랜·학업관리", "이용료 및 신청 방법 안내"]}
         crumbs={[
           { label: "1:1 멘토·플랜·학업관리", href: "/mentoring/management" },
-          { label: "이용료 안내" },
+          { label: "이용료 및 신청 방법" },
         ]}
       />
 

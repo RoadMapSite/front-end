@@ -74,7 +74,7 @@ const infoMenus: Menu[] = [
       { label: '관리 내용', href: '/mentoring/management' },
       { label: '1:1 상담 관리 T 소개', href: '/mentoring/song' },
       { label: '상담 자료', href: '/mentoring/consulting-register' },
-      { label: '이용료', href: '/mentoring/price' },
+      { label: '이용료 및 신청 방법', href: '/mentoring/price' },
     ],
   },
   {

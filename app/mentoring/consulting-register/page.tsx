@@ -7,7 +7,7 @@ export default function ConsultingRegisterPage() {
       <PageHero
         imageUrl="/images/teach.jpg"
         heroStyle={{ backgroundPosition: "center 60%" }}
-        lines={["1:1 멘토·플랜·학업관리", "상담 자료"]}
+        lines={["1:1 멘토·플랜·학업관리", "상담 자료 안내"]}
         crumbs={[
           { label: "1:1 멘토·플랜·학업관리", href: "/mentoring/management" },
           { label: "상담 자료" },
