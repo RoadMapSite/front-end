@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Bell, Loader2, Users } from "lucide-react";
+import { Bell, Loader2, Trash2, Users } from "lucide-react";
 import {
   fetchAdminWaitlists,
   patchAdminWaitlistStatus,
@@ -38,9 +38,9 @@ const STATUS_STYLES: Record<
   { bg: string; text: string; border: string }
 > = {
   WAITING: {
-    bg: "bg-amber-50",
-    text: "text-amber-700",
-    border: "border-amber-200",
+    bg: "bg-slate-100",
+    text: "text-slate-600",
+    border: "border-slate-200",
   },
   CONTACTED: {
     bg: "bg-blue-50",
@@ -53,9 +53,9 @@ const STATUS_STYLES: Record<
     border: "border-emerald-200",
   },
   CANCELED: {
-    bg: "bg-slate-100",
-    text: "text-slate-600",
-    border: "border-slate-200",
+    bg: "bg-red-50",
+    text: "text-red-800",
+    border: "border-red-200",
   },
 };
 
@@ -90,6 +90,9 @@ export default function WaitlistsPage() {
   const [pendingStatus, setPendingStatus] = useState<WaitlistStatus | null>(null);
 
   const modalOpen = selectedStudent !== null && pendingStatus !== null;
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedStudentForDelete, setSelectedStudentForDelete] =
+    useState<Waitlist | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastExiting, setToastExiting] = useState(false);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -161,6 +164,21 @@ export default function WaitlistsPage() {
     setPendingStatus(null);
   };
 
+  const openDeleteModal = (student: Waitlist) => {
+    setSelectedStudentForDelete(student);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setSelectedStudentForDelete(null);
+  };
+
+  const handleConfirmDelete = () => {
+    console.log("삭제 API 호출 예정");
+    closeDeleteModal();
+  };
+
   const handleConfirmStatusChange = async () => {
     if (!selectedStudent || !pendingStatus) return;
     setUpdatingWaitlistId(selectedStudent.waitlistId);
@@ -230,7 +248,12 @@ export default function WaitlistsPage() {
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
-            disabled={loadState === "loading" || modalOpen || updatingWaitlistId !== null}
+            disabled={
+              loadState === "loading" ||
+              modalOpen ||
+              isDeleteModalOpen ||
+              updatingWaitlistId !== null
+            }
             className={`
               flex-1 min-w-0 cursor-pointer rounded-md px-4 py-2.5 text-sm font-medium
               transition-all duration-200 ease-out
@@ -275,12 +298,13 @@ export default function WaitlistsPage() {
               <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                 상태 변경
               </th>
+              <th className="px-6 py-4 pr-16 text-center text-sm font-semibold text-slate-700" aria-hidden />
             </tr>
           </thead>
           <tbody>
             {loadState === "loading" ? (
               <tr>
-                <td colSpan={6} className="p-0 align-middle">
+                <td colSpan={7} className="p-0 align-middle">
                   <div className="flex min-h-[min(42vh,18rem)] flex-col items-center justify-center gap-4 px-6 py-12">
                     <Loader2
                       className="h-10 w-10 animate-spin text-slate-700"
@@ -296,7 +320,7 @@ export default function WaitlistsPage() {
             ) : items.length === 0 ? (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="px-6 py-16 text-center text-sm text-slate-500"
                 >
                   해당 구간에 등록된 대기자가 없습니다.
@@ -305,7 +329,9 @@ export default function WaitlistsPage() {
             ) : (
               items.map((item) => {
                 const rowBusy =
-                  updatingWaitlistId === item.waitlistId || modalOpen;
+                  updatingWaitlistId === item.waitlistId ||
+                  modalOpen ||
+                  isDeleteModalOpen;
                 return (
                   <tr
                     key={item.waitlistId}
@@ -349,6 +375,22 @@ export default function WaitlistsPage() {
                           </option>
                         ))}
                       </select>
+                    </td>
+                    <td className="px-6 py-4 pr-16 text-center">
+                      <button
+                        type="button"
+                        onClick={() => openDeleteModal(item)}
+                        disabled={rowBusy}
+                        className="mx-auto flex w-fit cursor-pointer flex-row items-center gap-1.5 whitespace-nowrap rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                        aria-label={`${item.name} 대기 등록 삭제`}
+                      >
+                        <Trash2
+                          className="h-[1.125rem] w-[1.125rem] shrink-0"
+                          strokeWidth={2}
+                          aria-hidden
+                        />
+                        삭제
+                      </button>
                     </td>
                   </tr>
                 );
@@ -407,6 +449,54 @@ export default function WaitlistsPage() {
                 onClick={closeModal}
                 disabled={updatingWaitlistId !== null}
                 className="flex-1 cursor-pointer rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isDeleteModalOpen && selectedStudentForDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-[logo-transition-fade-in_0.25s_ease-out]"
+          onClick={closeDeleteModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="waitlist-delete-modal-title"
+        >
+          <div
+            className="mx-4 w-full max-w-lg rounded-xl bg-white p-6 shadow-xl animate-[confirm-modal-appear_0.6s_ease-out]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 p-3 text-blue-500">
+              <Trash2 className="h-6 w-6" strokeWidth={2} aria-hidden />
+            </div>
+            <h2
+              id="waitlist-delete-modal-title"
+              className="mt-4 text-center text-xl font-bold text-gray-900"
+            >
+              대기 등록 삭제 확인
+            </h2>
+            <p className="mt-3 text-center text-slate-600">
+              정말{" "}
+              <span className="font-semibold text-blue-600">
+                {selectedStudentForDelete.name}
+              </span>{" "}
+              학생의 대기 등록을 삭제하시겠습니까?
+            </p>
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="flex-1 cursor-pointer rounded-xl bg-slate-800 px-4 py-3 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:bg-slate-700 active:scale-[0.98]"
+              >
+                확인
+              </button>
+              <button
+                type="button"
+                onClick={closeDeleteModal}
+                className="flex-1 cursor-pointer rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-200 active:scale-[0.98]"
               >
                 닫기
               </button>
