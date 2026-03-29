@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { apiPost, AUTH_TOKEN_KEY } from "@/api/apiClient";
 import { sendVerificationCode, verifyAuthCode } from "@/api/auth";
-import { Info } from "lucide-react";
+import MessageModal from "@/components/MessageModal";
 
 type Season = "SEMESTER_1" | "SEMESTER_2" | "SUMMER" | "WINTER";
 type Branch = "N" | "Hi-end";
@@ -76,16 +76,14 @@ export default function ReservationPage() {
   const [sendCodeError, setSendCodeError] = useState<string | null>(null);
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [phoneAuthModalMessage, setPhoneAuthModalMessage] = useState<string | null>(null);
+  const reloadAfterModalCloseRef = useRef(false);
 
   const showBranchSelection = season !== null && needsBranch(season);
 
   const handleSeasonChange = (s: Season) => {
     setSeason(s);
-    if (!needsBranch(s)) {
-      setBranch(null);
-    } else {
-      setBranch(null);
-    }
+    setBranch(null);
   };
 
   const handleSendVerification = async () => {
@@ -100,7 +98,10 @@ export default function ReservationPage() {
       setVerificationCode("");
       setVerificationToken(null);
       if (typeof window !== "undefined") localStorage.removeItem(AUTH_TOKEN_KEY);
-      if (data.message) alert(data.message);
+      if (data.message) {
+        reloadAfterModalCloseRef.current = false;
+        setPhoneAuthModalMessage(data.message);
+      }
     } catch (err) {
       setSendCodeError(err instanceof Error ? err.message : "인증번호 발송에 실패했습니다.");
     } finally {
@@ -119,7 +120,10 @@ export default function ReservationPage() {
       setVerificationToken(token);
       setPhoneVerified(true);
       if (token && typeof window !== "undefined") localStorage.setItem(AUTH_TOKEN_KEY, token);
-      if (data.message) alert(data.message);
+      if (data.message) {
+        reloadAfterModalCloseRef.current = false;
+        setPhoneAuthModalMessage(data.message);
+      }
     } catch (err) {
       setVerifyError(err instanceof Error ? err.message : "인증에 실패했습니다.");
     } finally {
@@ -133,30 +137,15 @@ export default function ReservationPage() {
     if (needsBranch(season) && !branch) return;
 
     const isCamp = !needsBranch(season);
-    const useAge = needsBranch(season) && branch === "N";
+    const isNBranch = needsBranch(season) && branch === "N";
 
-    if (useAge && !age.trim()) {
-      alert("나이를 입력해 주세요.");
-      return;
+    if (isNBranch) {
+      if (!age.trim()) return;
+    } else if (isCamp) {
+      if (!school.trim() || !grade || !age.trim()) return;
+    } else {
+      if (!school.trim() || !grade) return;
     }
-    if (isCamp) {
-      const hasSchool = school.trim().length > 0;
-      const hasGrade = !!grade;
-      const hasAge = age.trim().length > 0;
-
-      if (hasSchool && !hasGrade) {
-        alert("학년을 선택해 주세요.");
-        return;
-      }
-      if (hasGrade && !hasSchool) {
-        alert("학교를 입력해 주세요.");
-        return;
-      }
-      if (!hasSchool && !hasGrade && !hasAge) {
-        alert("학교·학년을 선택하시거나, 나이를 입력해 주세요.");
-        return;
-      }
-    } else if (!useAge && (!school.trim() || !grade)) return;
 
     const payload: {
       branch: string | null;
@@ -172,16 +161,12 @@ export default function ReservationPage() {
       name: name.trim(),
       phoneNumber: phoneNumber.trim(),
     };
-    if (useAge) {
+    if (isNBranch) {
       payload.age = parseInt(age, 10);
     } else if (isCamp) {
-      if (school.trim() && grade) {
-        payload.school = school.trim();
-        payload.grade = grade;
-      }
-      if (age.trim()) {
-        payload.age = parseInt(age, 10);
-      }
+      payload.school = school.trim();
+      payload.grade = grade;
+      payload.age = parseInt(age, 10);
     } else {
       payload.school = school.trim();
       payload.grade = grade;
@@ -190,39 +175,25 @@ export default function ReservationPage() {
     setIsSubmitting(true);
     try {
       const data = await submitWaitlist(payload);
-      if (data.message) alert(data.message);
-      window.location.reload();
+      reloadAfterModalCloseRef.current = true;
+      setPhoneAuthModalMessage(data.message || "등록 신청이 접수되었습니다.");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "등록 신청에 실패했습니다.");
+      reloadAfterModalCloseRef.current = false;
+      setPhoneAuthModalMessage(err instanceof Error ? err.message : "등록 신청에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const useAgeForSubmit = season !== null && needsBranch(season) && branch === "N";
-  const isCampForSubmit = season !== null && !needsBranch(season);
-
-  const isValidCampInput = () => {
-    const hasSchool = school.trim().length > 0;
-    const hasGrade = !!grade;
-    const hasAge = age.trim().length > 0;
-    if (hasSchool && !hasGrade) return false;
-    if (hasGrade && !hasSchool) return false;
-    return (hasSchool && hasGrade) || hasAge;
-  };
-
   const canSubmit =
-    season &&
-    (needsBranch(season) ? branch : true) &&
+    !!season &&
     name.trim() &&
     phoneNumber.trim() &&
     phoneVerified &&
-    verificationToken &&
-    (useAgeForSubmit
-      ? age.trim()
-      : isCampForSubmit
-        ? isValidCampInput()
-        : school.trim() && grade);
+    !!verificationToken &&
+    (needsBranch(season)
+      ? !!branch && (branch === "N" ? !!age.trim() : !!(school.trim() && grade))
+      : !!(school.trim() && grade && age.trim()));
 
   return (
     <main>
@@ -305,21 +276,6 @@ export default function ReservationPage() {
                 />
               ) : (showBranchSelection && branch === "Hi-end") || (season && !needsBranch(season)) ? (
                 <>
-                  {season && !needsBranch(season) && (
-                    <div className="flex gap-4 rounded-2xl bg-gradient-to-br from-slate-50 to-sky-50/80 px-5 py-4 shadow-sm ring-1 ring-slate-200/60">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-500/10">
-                        <Info className="h-5 w-5 text-sky-600" />
-                      </div>
-                      <div className="min-w-0 flex-1 space-y-1 pt-0.5">
-                        <p className="text-sm font-semibold text-slate-800">입력 안내</p>
-                        <p className="text-sm leading-relaxed text-slate-600">
-                          <span className="font-medium text-slate-700">학생</span>이시면 학교와 학년을 선택해 주세요.
-                          <br />
-                          <span className="font-medium text-slate-700">학생이 아닌</span> 경우 나이만 입력해 주세요.
-                        </p>
-                      </div>
-                    </div>
-                  )}
                   <input
                     type="text"
                     placeholder="학교를 입력해주세요"
@@ -330,7 +286,7 @@ export default function ReservationPage() {
                   <select
                     value={grade}
                     onChange={(e) => setGrade(e.target.value)}
-                    className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 focus:outline-none focus:border-gray-300 bg-gray-50/50 appearance-none cursor-pointer"
+                    className={`w-full py-3 px-4 rounded-xl border border-gray-200 text-base focus:outline-none focus:border-gray-300 bg-gray-50/50 appearance-none cursor-pointer ${grade ? "text-gray-800" : "text-gray-400"}`}
                   >
                     <option value="">학년을 선택해주세요</option>
                     <option value="2학년">2학년</option>
@@ -341,7 +297,7 @@ export default function ReservationPage() {
                       type="number"
                       min={1}
                       max={99}
-                      placeholder="나이를 입력해주세요 (학생이 아닌 경우)"
+                      placeholder="나이를 입력해주세요"
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
                       className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
@@ -409,6 +365,15 @@ export default function ReservationPage() {
           </form>
         </div>
       </section>
+      <MessageModal
+        message={phoneAuthModalMessage}
+        onClose={() => {
+          const reload = reloadAfterModalCloseRef.current;
+          reloadAfterModalCloseRef.current = false;
+          setPhoneAuthModalMessage(null);
+          if (reload) window.location.reload();
+        }}
+      />
     </main>
   );
 }

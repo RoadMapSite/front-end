@@ -6,6 +6,7 @@ import PageHero from "@/components/PageHero";
 import { useFadeIn } from "@/hooks/useFadeIn";
 import { apiPost, apiPostForm, AUTH_TOKEN_KEY } from "@/api/apiClient";
 import { sendVerificationCode, verifyAuthCode } from "@/api/auth";
+import MessageModal from "@/components/MessageModal";
 
 const MAX_IMAGES = 5;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -49,6 +50,8 @@ export default function ReviewRegisterPage() {
   const [sendCodeError, setSendCodeError] = useState<string | null>(null);
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [phoneAuthModalMessage, setPhoneAuthModalMessage] = useState<string | null>(null);
+  const reloadAfterModalCloseRef = useRef(false);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastExiting, setToastExiting] = useState(false);
@@ -141,7 +144,10 @@ export default function ReviewRegisterPage() {
       setVerificationCode("");
       setVerificationToken(null);
       if (typeof window !== "undefined") localStorage.removeItem(AUTH_TOKEN_KEY);
-      if (data.message) alert(data.message);
+      if (data.message) {
+        reloadAfterModalCloseRef.current = false;
+        setPhoneAuthModalMessage(data.message);
+      }
     } catch (err) {
       setSendCodeError(err instanceof Error ? err.message : "인증번호 발송에 실패했습니다.");
     } finally {
@@ -160,7 +166,10 @@ export default function ReviewRegisterPage() {
       setVerificationToken(token);
       setPhoneVerified(true);
       if (token && typeof window !== "undefined") localStorage.setItem(AUTH_TOKEN_KEY, token);
-      if (data.message) alert(data.message);
+      if (data.message) {
+        reloadAfterModalCloseRef.current = false;
+        setPhoneAuthModalMessage(data.message);
+      }
     } catch (err) {
       setVerifyError(err instanceof Error ? err.message : "인증에 실패했습니다.");
     } finally {
@@ -194,10 +203,11 @@ export default function ReviewRegisterPage() {
       const data = await apiPost<SubmitReviewResponse>("/v1/user/reviews", body, {
         token: verificationToken,
       });
-      alert(data?.message ?? "후기가 등록되었습니다. 검토 후 노출됩니다.");
-      window.location.reload();
+      reloadAfterModalCloseRef.current = true;
+      setPhoneAuthModalMessage(data?.message ?? "후기가 등록되었습니다. 검토 후 노출됩니다.");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "후기 등록에 실패했습니다.");
+      reloadAfterModalCloseRef.current = false;
+      setPhoneAuthModalMessage(err instanceof Error ? err.message : "후기 등록에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -405,6 +415,15 @@ export default function ReviewRegisterPage() {
           {toastMessage}
         </div>
       )}
+      <MessageModal
+        message={phoneAuthModalMessage}
+        onClose={() => {
+          const reload = reloadAfterModalCloseRef.current;
+          reloadAfterModalCloseRef.current = false;
+          setPhoneAuthModalMessage(null);
+          if (reload) window.location.reload();
+        }}
+      />
     </main>
   );
 }

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import ConsultationCalendar from "@/components/ConsultationCalendar";
 import { getAvailableTimeSlots } from "@/lib/consultationSlots";
 import { apiPost, AUTH_TOKEN_KEY } from "@/api/apiClient";
 import { sendVerificationCode, verifyAuthCode } from "@/api/auth";
 import { fetchUnavailableSchedules } from "@/api/consultations";
+import MessageModal from "@/components/MessageModal";
 
 type Branch = "N" | "Hi-end";
 
@@ -76,6 +77,8 @@ export default function ConsultingPage() {
   } | null>(null);
   const [scheduleLoading, setScheduleLoading] = useState(false);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
+  const [phoneAuthModalMessage, setPhoneAuthModalMessage] = useState<string | null>(null);
+  const reloadAfterModalCloseRef = useRef(false);
 
   const yearMonthStr = useMemo(() => {
     const y = calendarMonth.getFullYear();
@@ -138,7 +141,10 @@ export default function ConsultingPage() {
       setVerificationCode("");
       setVerificationToken(null);
       if (typeof window !== "undefined") localStorage.removeItem(AUTH_TOKEN_KEY);
-      if (data.message) alert(data.message);
+      if (data.message) {
+        reloadAfterModalCloseRef.current = false;
+        setPhoneAuthModalMessage(data.message);
+      }
     } catch (err) {
       setSendCodeError(err instanceof Error ? err.message : "인증번호 발송에 실패했습니다.");
     } finally {
@@ -157,7 +163,10 @@ export default function ConsultingPage() {
       setVerificationToken(token);
       setPhoneVerified(true);
       if (token && typeof window !== "undefined") localStorage.setItem(AUTH_TOKEN_KEY, token);
-      if (data.message) alert(data.message);
+      if (data.message) {
+        reloadAfterModalCloseRef.current = false;
+        setPhoneAuthModalMessage(data.message);
+      }
     } catch (err) {
       setVerifyError(err instanceof Error ? err.message : "인증에 실패했습니다.");
     } finally {
@@ -183,10 +192,11 @@ export default function ConsultingPage() {
     setIsSubmitting(true);
     try {
       const data = await submitConsultation(payload);
-      if (data.message) alert(data.message);
-      window.location.reload();
+      reloadAfterModalCloseRef.current = true;
+      setPhoneAuthModalMessage(data.message || "상담 신청이 접수되었습니다.");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "상담 신청에 실패했습니다.");
+      reloadAfterModalCloseRef.current = false;
+      setPhoneAuthModalMessage(err instanceof Error ? err.message : "상담 신청에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -369,7 +379,7 @@ export default function ConsultingPage() {
                   <select
                     value={grade}
                     onChange={(e) => setGrade(e.target.value)}
-                    className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 focus:outline-none focus:border-gray-300 bg-gray-50/50 appearance-none cursor-pointer"
+                    className={`w-full py-3 px-4 rounded-xl border border-gray-200 text-base focus:outline-none focus:border-gray-300 bg-gray-50/50 appearance-none cursor-pointer ${grade ? "text-gray-800" : "text-gray-400"}`}
                   >
                     <option value="">학년을 선택해주세요</option>
                     <option value="2학년">2학년</option>
@@ -459,6 +469,15 @@ export default function ConsultingPage() {
           </form>
         </div>
       </section>
+      <MessageModal
+        message={phoneAuthModalMessage}
+        onClose={() => {
+          const reload = reloadAfterModalCloseRef.current;
+          reloadAfterModalCloseRef.current = false;
+          setPhoneAuthModalMessage(null);
+          if (reload) window.location.reload();
+        }}
+      />
     </main>
   );
 }

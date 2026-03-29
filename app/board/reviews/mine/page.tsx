@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import { Trash2 } from "lucide-react";
 import { useFadeIn } from "@/hooks/useFadeIn";
 import { apiGet, apiDelete, AUTH_TOKEN_KEY } from "@/api/apiClient";
 import { sendVerificationCode, verifyAuthCode } from "@/api/auth";
+import MessageModal from "@/components/MessageModal";
 
 type ReviewStatus = "PENDING" | "APPROVED";
 
@@ -61,12 +62,6 @@ function StatusBadge({ status }: { status: ReviewStatus }) {
   );
 }
 
-// 개발용 미리보기 샘플 데이터 (인증 없이 화면 확인용)
-const DEV_MOCK_REVIEWS: MyReview[] = [
-  { reviewId: 1, title: "독학재수학원 이용 후기 (샘플)", authorName: "홍길동", status: "PENDING", createdAt: "2026-03-10T00:00:00Z" },
-  { reviewId: 2, title: "수업 품질이 좋았어요 (샘플)", authorName: "김철수", status: "APPROVED", createdAt: "2026-03-08T00:00:00Z" },
-];
-
 export default function MyReviewsPage() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -81,6 +76,7 @@ export default function MyReviewsPage() {
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [phoneAuthModalMessage, setPhoneAuthModalMessage] = useState<string | null>(null);
 
   const handleSendVerification = async () => {
     const trimmed = phoneNumber.trim();
@@ -95,7 +91,9 @@ export default function MyReviewsPage() {
       setVerificationToken(null);
       setReviews(null);
       if (typeof window !== "undefined") localStorage.removeItem(AUTH_TOKEN_KEY);
-      if (data.message) alert(data.message);
+      if (data.message) {
+        setPhoneAuthModalMessage(data.message);
+      }
     } catch (err) {
       setSendCodeError(err instanceof Error ? err.message : "인증번호 발송에 실패했습니다.");
     } finally {
@@ -114,7 +112,7 @@ export default function MyReviewsPage() {
       setVerificationToken(token);
       setPhoneVerified(true);
       if (token && typeof window !== "undefined") localStorage.setItem(AUTH_TOKEN_KEY, token);
-      if (data.message) alert(data.message);
+      if (data.message) setPhoneAuthModalMessage(data.message);
     } catch (err) {
       setVerifyError(err instanceof Error ? err.message : "인증에 실패했습니다.");
     } finally {
@@ -139,18 +137,13 @@ export default function MyReviewsPage() {
   const handleDelete = async (reviewId: number) => {
     if (!verificationToken) return;
     if (!window.confirm("정말 이 후기를 삭제하시겠습니까?")) return;
-    if (verificationToken === "dev-token") {
-      setReviews((prev) => (prev ?? []).filter((r) => r.reviewId !== reviewId));
-      setDeletingId(null);
-      return;
-    }
     setDeletingId(reviewId);
     try {
       await deleteReview(reviewId);
       setReviews((prev) => (prev ?? []).filter((r) => r.reviewId !== reviewId));
-      alert("후기가 삭제되었습니다.");
+      setPhoneAuthModalMessage("후기가 삭제되었습니다.");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "삭제에 실패했습니다.");
+      setPhoneAuthModalMessage(err instanceof Error ? err.message : "삭제에 실패했습니다.");
     } finally {
       setDeletingId(null);
     }
@@ -158,12 +151,17 @@ export default function MyReviewsPage() {
 
   const fade = useFadeIn(0.1);
 
-  const handleDevPreview = () => {
-    setVerificationToken("dev-token");
-    setPhoneVerified(true);
-    setReviews([...DEV_MOCK_REVIEWS]);
-    setError(null);
-  };
+  useLayoutEffect(() => {
+    try {
+      const token = localStorage.getItem(AUTH_TOKEN_KEY);
+      if (token?.trim()) {
+        setVerificationToken(token);
+        setPhoneVerified(true);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     if (phoneVerified && verificationToken && reviews === null && !loading && !error) {
@@ -239,15 +237,6 @@ export default function MyReviewsPage() {
                     {verifyError && <p className="text-sm text-red-600">{verifyError}</p>}
                   </>
                 )}
-                <div className="mt-4 pt-4 border-t border-slate-200">
-                  <button
-                    type="button"
-                    onClick={handleDevPreview}
-                    className="w-full py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm font-medium hover:bg-slate-100"
-                  >
-                    개발용: 인증 건너뛰고 미리보기
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -391,6 +380,7 @@ export default function MyReviewsPage() {
           </Link>
         </div>
       </section>
+      <MessageModal message={phoneAuthModalMessage} onClose={() => setPhoneAuthModalMessage(null)} />
     </main>
   );
 }
