@@ -23,7 +23,7 @@ const SYSTEM_CARDS = [
   {
     number: "04",
     title: "1:1 상담 관리<br/>시스템",
-    desc: "ROADMAP 학습 컨설팅 전문 선생님과<br/>학업, 입시, 멘탈 관련 1:1 학업 상담을 경험할 수 있습니다",
+    desc: "ROADMAP 학습 컨설팅 전문 선생님과<br/>학업, 입시, 멘탈 관련 1:1 상담을 경험할 수 있습니다",
     icon: "/images/icon-consult.png",
   },
 ];

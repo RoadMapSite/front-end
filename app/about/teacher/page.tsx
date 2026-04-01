@@ -7,7 +7,7 @@ export default function AboutTeacherPage() {
     if (role === "원장T" || role === "부원장T") {
       return { backgroundColor: "#171717", color: "#FFFFFF" };
     }
-    if (role === "상담 관리 T") {
+    if (role === "학습 컨설팅 T") {
       return { backgroundColor: "#71717A", color: "#FFFFFF" };
     }
     return { backgroundColor: "#E4E4E7", color: "#171717" };
@@ -40,7 +40,7 @@ export default function AboutTeacherPage() {
       accent: "bg-emerald-600",
     },
     {
-      role: "상담 관리 T",
+      role: "학습 컨설팅 T",
       namePart: "송의준",
       titlePart: "선생님",
       careers: [
@@ -143,7 +143,7 @@ export default function AboutTeacherPage() {
                               backgroundColor:
                                 director.role === "원장T" || director.role === "부원장T"
                                   ? "#171717"
-                                  : director.role === "상담 관리 T"
+                                  : director.role === "학습 컨설팅 T"
                                     ? "#71717A"
                                     : "#A1A1AA",
                             }}

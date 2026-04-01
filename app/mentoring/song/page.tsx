@@ -32,7 +32,7 @@ export default function MentoringSongPage() {
             alt="송의준 선생님 소개"
             width={1920}
             height={1080}
-            className="motion-rise motion-delay-1 mx-auto h-auto w-full max-w-3xl"
+            className="motion-rise motion-delay-1 mx-auto h-auto w-full max-w-2xl"
             priority
           />
         </div>

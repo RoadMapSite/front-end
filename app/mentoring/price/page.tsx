@@ -7,9 +7,9 @@ export default function MentoringPricePage() {
       <PageHero
         imageUrl="/images/teach.jpg"
         heroStyle={{ backgroundPosition: "center 60%" }}
-        lines={["1:1 심층 학습 컨설팅", "이용료 및 신청 방법 안내"]}
+        lines={["1:1 학습 컨설팅", "이용료 및 신청 방법 안내"]}
         crumbs={[
-          { label: "1:1 심층 학습 컨설팅", href: "/mentoring/management" },
+          { label: "1:1 학습 컨설팅", href: "/mentoring/management" },
           { label: "이용료 및 신청 방법" },
         ]}
       />
@@ -20,7 +20,7 @@ export default function MentoringPricePage() {
       >
         <div className="mx-auto w-full max-w-6xl px-6">
           <h2 className="motion-rise mb-0 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl md:mb-0">
-            <span className="block">1:1 심층 학습 컨설팅</span>
+            <span className="block">1:1 학습 컨설팅</span>
             <span className="block">이용료 및 신청 방법은 다음과 같습니다</span>
           </h2>
 
