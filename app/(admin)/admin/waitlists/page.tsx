@@ -374,14 +374,14 @@ export default function WaitlistsPage() {
                     <td className="px-6 py-4">
                       {item.isExisting === true ? (
                         <span
-                          className="inline-flex min-w-[1.75rem] items-center justify-center rounded-full border border-blue-200 bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700"
+                          className="text-base font-bold text-blue-600"
                           title="기존 재원생"
                         >
                           O
                         </span>
                       ) : item.isExisting === false ? (
                         <span
-                          className="inline-flex min-w-[1.75rem] items-center justify-center rounded-full border border-red-200 bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700"
+                          className="text-base font-bold text-red-600"
                           title="신규생"
                         >
                           X
