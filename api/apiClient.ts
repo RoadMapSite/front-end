@@ -39,6 +39,17 @@ function isDevelopment(): boolean {
   return process.env.NODE_ENV === "development";
 }
 
+/** HTTP 오류 응답 — status로 401/403 등 구분 가능 */
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
 /** localStorage에 저장할 토큰 키 (로그인 연동 시 사용) */
 export const AUTH_TOKEN_KEY = "authToken";
 
@@ -146,7 +157,7 @@ export async function apiClient<T = unknown>(path: string, options: ApiRequestOp
     }
     const errData = isJsonResponse ? await res.json().catch(() => ({})) : {};
     const message = (errData as { message?: string })?.message ?? `요청 실패: ${res.status}`;
-    throw new Error(message);
+    throw new ApiError(message, res.status);
   }
 
   if (isJsonResponse) {

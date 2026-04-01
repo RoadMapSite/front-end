@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useLayoutEffect } from "react";
+import { useState, useEffect, useLayoutEffect, useCallback } from "react";
 import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import { Trash2 } from "lucide-react";
 import { useFadeIn } from "@/hooks/useFadeIn";
-import { apiGet, apiDelete, AUTH_TOKEN_KEY } from "@/api/apiClient";
+import { apiGet, apiDelete, AUTH_TOKEN_KEY, TOKEN_KEYS_TO_CLEAR, ApiError } from "@/api/apiClient";
 import { sendVerificationCode, verifyAuthCode } from "@/api/auth";
 import MessageModal from "@/components/MessageModal";
 
@@ -35,6 +35,23 @@ interface DeleteReviewResponse {
 
 async function deleteReview(reviewId: number): Promise<DeleteReviewResponse> {
   return apiDelete<DeleteReviewResponse>(`/v1/user/reviews/${reviewId}`, { skipUnauthorizedRedirect: true });
+}
+
+/** error 상태 문자열에서 인증 실패 여부 추정 (ApiError status로 잡지 못한 경우의 안전망) */
+function authFailureMessageHint(msg: string): boolean {
+  const m = msg.trim();
+  if (!m) return false;
+  if (/만료/.test(m)) return true;
+  if (/인증 토큰/.test(m)) return true;
+  if (/다시 진행/.test(m)) return true;
+  if (/유효하지\s*않/.test(m)) return true;
+  return false;
+}
+
+/** 목록/삭제 API에서 만료·무효 토큰으로 실패했을 때 */
+function isAuthFailureError(err: unknown): boolean {
+  if (err instanceof ApiError) return err.status === 401 || err.status === 403;
+  return authFailureMessageHint(err instanceof Error ? err.message : String(err));
 }
 
 function formatDate(iso: string): string {
@@ -77,6 +94,20 @@ export default function MyReviewsPage() {
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [phoneAuthModalMessage, setPhoneAuthModalMessage] = useState<string | null>(null);
+
+  const resetSessionForReauth = useCallback((notice: string | null) => {
+    if (typeof window !== "undefined") {
+      TOKEN_KEYS_TO_CLEAR.forEach((key) => localStorage.removeItem(key));
+    }
+    setPhoneVerified(false);
+    setVerificationToken(null);
+    setReviews(null);
+    setError(null);
+    setVerificationSent(false);
+    setVerificationCode("");
+    setVerifyError(null);
+    if (notice) setPhoneAuthModalMessage(notice);
+  }, []);
 
   const handleSendVerification = async () => {
     const trimmed = phoneNumber.trim();
@@ -128,7 +159,13 @@ export default function MyReviewsPage() {
       const data = await fetchMyReviews();
       setReviews(data.myReviews ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "목록을 불러오지 못했습니다.");
+      if (isAuthFailureError(err)) {
+        resetSessionForReauth(
+          err instanceof Error ? err.message : "인증이 만료되었습니다. 휴대폰 인증을 다시 진행해 주세요."
+        );
+      } else {
+        setError(err instanceof Error ? err.message : "목록을 불러오지 못했습니다.");
+      }
     } finally {
       setLoading(false);
     }
@@ -143,7 +180,13 @@ export default function MyReviewsPage() {
       setReviews((prev) => (prev ?? []).filter((r) => r.reviewId !== reviewId));
       setPhoneAuthModalMessage("후기가 삭제되었습니다.");
     } catch (err) {
-      setPhoneAuthModalMessage(err instanceof Error ? err.message : "삭제에 실패했습니다.");
+      if (isAuthFailureError(err)) {
+        resetSessionForReauth(
+          err instanceof Error ? err.message : "인증이 만료되었습니다. 휴대폰 인증을 다시 진행해 주세요."
+        );
+      } else {
+        setPhoneAuthModalMessage(err instanceof Error ? err.message : "삭제에 실패했습니다.");
+      }
     } finally {
       setDeletingId(null);
     }
@@ -167,7 +210,14 @@ export default function MyReviewsPage() {
     if (phoneVerified && verificationToken && reviews === null && !loading && !error) {
       handleLoadReviews();
     }
-  }, [phoneVerified, verificationToken]);
+  }, [phoneVerified, verificationToken, reviews, loading, error]);
+
+  /** catch에서 놓친 인증 오류가 error로만 남은 경우 — paint 전에 세션 초기화해 안내 박스만 보이지 않게 함 */
+  useLayoutEffect(() => {
+    if (!error || !phoneVerified) return;
+    if (!authFailureMessageHint(error)) return;
+    resetSessionForReauth(error);
+  }, [error, phoneVerified, resetSessionForReauth]);
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-white">
@@ -244,6 +294,11 @@ export default function MyReviewsPage() {
           <div className="flex flex-col items-center justify-center py-16 text-slate-500">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-emerald-600" />
             <p className="mt-4 text-sm">목록을 불러오는 중…</p>
+          </div>
+        ) : error && phoneVerified && authFailureMessageHint(error) ? (
+          <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-emerald-600" />
+            <p className="mt-4 text-sm">인증이 필요합니다. 잠시만요…</p>
           </div>
         ) : error ? (
           <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200/60">
