@@ -68,7 +68,7 @@ const infoMenus: Menu[] = [
     ],
   },
   {
-    label: '1:1 멘토.플랜.학업관리',
+    label: '1:1 심층 학습 컨설팅',
     href: '/mentoring/management',
     subMenus: [
       { label: '관리 내용', href: '/mentoring/management' },

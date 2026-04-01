@@ -12,7 +12,7 @@ export default function MentoringSongPage() {
           "1:1 상담 관리 선생님을 소개합니다",
         ]}
         crumbs={[
-          { label: "1:1 멘토.플랜.학업관리" },
+          { label: "1:1 심층 학습 컨설팅", href: "/mentoring/management" },
           { label: "1:1 상담 관리 T 소개", href: "/mentoring/song" },
         ]}
       />
