@@ -1,10 +1,9 @@
 "use client";
 
+import { formatDateLocal, getConsultationMinSelectableDateStr } from "@/lib/consultationDateRules";
+
 function formatDateForInput(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  return formatDateLocal(d);
 }
 
 function getCalendarDays(year: number, month: number) {
@@ -51,7 +50,8 @@ export default function ConsultationCalendar({
   disablePastDates = true,
 }: Props) {
   const calendarDays = getCalendarDays(calendarMonth.getFullYear(), calendarMonth.getMonth());
-  const todayStr = formatDateForInput(new Date());
+  /** 상담 신청: 오늘+2일 이전 날짜 비활성화. 관리자 등 disablePastDates=false면 적용 안 함 */
+  const minDateStr = disablePastDates ? getConsultationMinSelectableDateStr() : "";
 
   const handlePrevMonth = () => {
     onMonthChange(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1));
@@ -98,9 +98,11 @@ export default function ConsultationCalendar({
       <div className="grid grid-cols-7 gap-2 [&>*]:min-w-0">
         {calendarDays.map(({ date, isCurrentMonth, dateStr }) => {
           const isSelected = selectedDate === dateStr;
-          const isPast = disablePastDates && dateStr < todayStr;
+          const isBeforeMin =
+            disablePastDates && minDateStr !== "" && dateStr < minDateStr;
           const isSunday = date.getDay() === 0;
-          const disabled = isPast || isSunday;
+          /** 헤더에 표시 중인 월이 아닌 칸(앞뒤 달 패딩)은 선택 불가 */
+          const disabled = !isCurrentMonth || isBeforeMin || isSunday;
           const count = reservationCountByDate[dateStr] ?? 0;
           return (
             <button
@@ -113,7 +115,7 @@ export default function ConsultationCalendar({
               }}
               className={`aspect-square min-w-[2.5rem] w-full max-w-12 flex flex-col items-center justify-center rounded-full text-base transition-colors ${
                 !isCurrentMonth ? "text-gray-300" : isSunday ? "text-red-500" : "text-gray-900"
-              } ${disabled || !isCurrentMonth ? "cursor-default" : "cursor-pointer hover:bg-gray-100"} ${
+              } ${disabled ? "cursor-default" : "cursor-pointer hover:bg-gray-100"} ${
                 disabled ? "opacity-50" : ""
               } ${isSelected ? "bg-slate-800 text-white hover:bg-slate-700" : ""}`}
             >

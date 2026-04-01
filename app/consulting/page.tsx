@@ -6,6 +6,7 @@ import { getAvailableTimeSlots } from "@/lib/consultationSlots";
 import { apiPost, AUTH_TOKEN_KEY } from "@/api/apiClient";
 import { sendVerificationCode, verifyAuthCode } from "@/api/auth";
 import { fetchUnavailableSchedules } from "@/api/consultations";
+import { getConsultationMinSelectableDateStr } from "@/lib/consultationDateRules";
 import MessageModal from "@/components/MessageModal";
 
 type Branch = "N" | "Hi-end";
@@ -41,14 +42,6 @@ async function submitConsultation(
     },
     { skipUnauthorizedRedirect: true }
   );
-}
-
-/** 특정 날짜에 대해 “가능한” 시간을 목 데이터로 반환 (선택된 날짜의 해시 기반) */
-function formatDateForInput(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
 }
 
 export default function ConsultingPage() {
@@ -176,7 +169,18 @@ export default function ConsultingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!branch || !selectedDate || !selectedTime || !name.trim() || !phoneNumber.trim() || !phoneVerified || !verificationToken) return;
+    const minDate = getConsultationMinSelectableDateStr();
+    if (
+      !branch ||
+      !selectedDate ||
+      selectedDate < minDate ||
+      !selectedTime ||
+      !name.trim() ||
+      !phoneNumber.trim() ||
+      !phoneVerified ||
+      !verificationToken
+    )
+      return;
     const isHiEnd = branch === "Hi-end";
     if (isHiEnd && (!school.trim() || !grade)) return;
     if (!isHiEnd && !age.trim()) return;
@@ -202,7 +206,7 @@ export default function ConsultingPage() {
     }
   };
 
-  const todayStr = formatDateForInput(new Date());
+  const minSelectableDateStr = getConsultationMinSelectableDateStr();
 
   return (
     <main>
@@ -271,9 +275,9 @@ export default function ConsultingPage() {
               <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 text-base text-gray-600 mb-4">
                 {!branch ? (
                   <>관을 먼저 선택해 주세요.</>
-                ) : selectedDate === todayStr ? (
+                ) : selectedDate === minSelectableDateStr ? (
                   <>
-                    오늘은 가능한 시간이 없어요
+                    가장 빠른 예약일에도 가능한 시간이 없어요
                     <br />
                     다른 날을 클릭해주세요 😊
                   </>
