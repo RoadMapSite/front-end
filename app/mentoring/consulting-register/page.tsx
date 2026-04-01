@@ -19,7 +19,7 @@ export default function ConsultingRegisterPage() {
         style={{ marginTop: "80px" }}
       >
         <div className="mx-auto w-full max-w-6xl px-6">
-          <h2 className="mb-12 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl md:mb-16">
+          <h2 className="motion-rise mb-12 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl md:mb-16">
             <span className="block">학생의 현재 성적과 학습 상황을 진단하여</span>
             <span className="block">최적의 방향을 설계합니다</span>
           </h2>
@@ -29,11 +29,11 @@ export default function ConsultingRegisterPage() {
             alt="1:1 상담 안내"
             width={1920}
             height={1080}
-            className="mx-auto h-auto w-full max-w-6xl"
+            className="motion-rise motion-delay-1 mx-auto h-auto w-full max-w-6xl"
             priority
           />
 
-          <div className="mt-40">
+          <div className="motion-rise motion-delay-2 mt-40">
             <h3 className="mb-12 mt-0 text-center text-3xl font-bold leading-tight text-gray-900 md:text-4xl md:mb-16">
               <span className="block">분석 내용을 바탕으로</span>
               <span className="block">학생에게 학습 가이드 결과지를 제공합니다</span>

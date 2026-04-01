@@ -9,11 +9,11 @@ export default function MentoringSongPage() {
         heroStyle={{ backgroundPosition: "center 55%" }}
         lines={[
           "로드맵이 자랑하는",
-          "1:1 상담 관리 선생님을 소개합니다",
+          "학습 컨설팅 선생님을 소개합니다",
         ]}
         crumbs={[
           { label: "1:1 심층 학습 컨설팅", href: "/mentoring/management" },
-          { label: "1:1 상담 관리 T 소개", href: "/mentoring/song" },
+          { label: "학습 컨설팅 T 소개", href: "/mentoring/song" },
         ]}
       />
 
@@ -32,7 +32,7 @@ export default function MentoringSongPage() {
             alt="송의준 선생님 소개"
             width={1920}
             height={1080}
-            className="mx-auto h-auto w-full max-w-3xl"
+            className="motion-rise motion-delay-1 mx-auto h-auto w-full max-w-3xl"
             priority
           />
         </div>
