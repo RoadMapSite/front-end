@@ -102,6 +102,12 @@ export default function Footer() {
           </div>
         </div>
       </div>
+
+      <div className="border-t border-white/10 px-6 py-4">
+        <p className="text-center text-xs text-white/70">
+          © 2026 Roadmap. All rights reserved.
+        </p>
+      </div>
     </footer>
   );
 }
