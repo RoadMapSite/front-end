@@ -10,6 +10,7 @@ import {
   type AdminConsultation,
   type AdminConsultationBranch,
 } from "@/api/adminConsultations";
+import { formatPhoneDisplay } from "@/lib/formatPhoneDisplay";
 
 const BRANCHES: AdminConsultationBranch[] = ["N", "Hi-end"];
 
@@ -290,17 +291,22 @@ export default function ConsultationsPage() {
                               <span className="font-semibold text-slate-800">
                                 {consultation.name}
                               </span>
-                              {isHiEnd ? (
-                                <span className="text-sm text-slate-600">
-                                  {schoolGradeLine || "—"}
+                              <span className="inline-flex flex-wrap items-center gap-x-2 text-sm">
+                                {isHiEnd ? (
+                                  <span className="text-slate-600">
+                                    {schoolGradeLine || "—"}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-600">
+                                    {consultation.age != null
+                                      ? `${consultation.age}세`
+                                      : "—"}
+                                  </span>
+                                )}
+                                <span className="text-slate-500 tabular-nums">
+                                  {formatPhoneDisplay(consultation.phoneNumber)}
                                 </span>
-                              ) : (
-                                <span className="text-sm text-slate-600">
-                                  {consultation.age != null
-                                    ? `${consultation.age}세`
-                                    : "—"}
-                                </span>
-                              )}
+                              </span>
                               <span
                                 className={`text-xs font-medium px-2 py-0.5 rounded ${
                                   isN

@@ -9,6 +9,7 @@ import {
   type Waitlist,
   type WaitlistStatus,
 } from "@/api/adminWaitlists";
+import { formatPhoneDisplay } from "@/lib/formatPhoneDisplay";
 
 type TabId =
   | "SEM1_N"
@@ -68,17 +69,6 @@ function formatRegisteredAt(iso: string): string {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
-}
-
-function formatPhoneDisplay(phone: string): string {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length === 11) {
-    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
-  }
-  if (digits.length === 10) {
-    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
-  }
-  return phone;
 }
 
 export default function WaitlistsPage() {
