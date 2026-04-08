@@ -7,6 +7,7 @@ import MessageModal from "@/components/MessageModal";
 
 type Season = "SEMESTER_1" | "SEMESTER_2" | "SUMMER" | "WINTER";
 type Branch = "N" | "Hi-end";
+type Gender = "MALE" | "FEMALE";
 
 const SEASON_OPTIONS: { value: Season; label: string }[] = [
   { value: "SEMESTER_1", label: "1학기" },
@@ -34,6 +35,7 @@ async function submitWaitlist(
     season: Season;
     name: string;
     phoneNumber: string;
+    gender: Gender;
     isExisting: boolean;
     age?: number;
     school?: string;
@@ -44,6 +46,7 @@ async function submitWaitlist(
     season: payload.season,
     name: payload.name.trim(),
     phoneNumber: payload.phoneNumber.replace(/\D/g, ""),
+    gender: payload.gender,
     isExisting: payload.isExisting,
   };
   if (payload.branch != null) {
@@ -65,6 +68,8 @@ export default function ReservationPage() {
   const [season, setSeason] = useState<Season | null>(null);
   const [branch, setBranch] = useState<Branch | null>(null);
   const [name, setName] = useState("");
+  /** 미선택: null — MALE / FEMALE */
+  const [gender, setGender] = useState<Gender | null>(null);
   /** 미선택: null — 제출 시 true(기존 재원생) / false(신규생) */
   const [isExisting, setIsExisting] = useState<boolean | null>(null);
   const [age, setAge] = useState("");
@@ -83,6 +88,7 @@ export default function ReservationPage() {
   const [phoneAuthModalMessage, setPhoneAuthModalMessage] = useState<string | null>(null);
   const reloadAfterModalCloseRef = useRef(false);
   const [isExistingError, setIsExistingError] = useState<string | null>(null);
+  const [genderError, setGenderError] = useState<string | null>(null);
 
   const showBranchSelection = season !== null && needsBranch(season);
 
@@ -139,7 +145,12 @@ export default function ReservationPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsExistingError(null);
+    setGenderError(null);
     if (!season || !name.trim() || !phoneNumber.trim() || !phoneVerified || !verificationToken) return;
+    if (gender === null) {
+      setGenderError("성별을 선택해주세요.");
+      return;
+    }
     if (isExisting === null) {
       setIsExistingError("기존 재원 여부를 선택해주세요.");
       return;
@@ -162,6 +173,7 @@ export default function ReservationPage() {
       season: Season;
       name: string;
       phoneNumber: string;
+      gender: Gender;
       isExisting: boolean;
       age?: number;
       school?: string;
@@ -171,6 +183,7 @@ export default function ReservationPage() {
       season,
       name: name.trim(),
       phoneNumber: phoneNumber.trim(),
+      gender,
       isExisting,
     };
     if (isNBranch) {
@@ -200,6 +213,7 @@ export default function ReservationPage() {
   const canSubmit =
     !!season &&
     name.trim() &&
+    gender !== null &&
     isExisting !== null &&
     phoneNumber.trim() &&
     phoneVerified &&
@@ -277,6 +291,25 @@ export default function ReservationPage() {
                 onChange={(e) => setName(e.target.value)}
                 className="w-full py-3 px-4 rounded-xl border border-gray-200 text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-300 bg-gray-50/50"
               />
+              <select
+                value={gender ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setGender(v === "" ? null : (v as Gender));
+                  setGenderError(null);
+                }}
+                className={`w-full py-3 px-4 rounded-xl border text-base focus:outline-none focus:border-gray-300 bg-gray-50/50 appearance-none cursor-pointer ${
+                  gender ? "text-gray-800" : "text-gray-400"
+                } ${genderError ? "border-red-500 focus:border-red-500" : "border-gray-200"}`}
+                aria-invalid={Boolean(genderError)}
+              >
+                <option value="" disabled hidden>
+                  성별을 선택해주세요
+                </option>
+                <option value="MALE">남성</option>
+                <option value="FEMALE">여성</option>
+              </select>
+              {genderError && <p className="text-sm text-red-600">{genderError}</p>}
               <select
                 value={isExisting === null ? "" : isExisting ? "true" : "false"}
                 onChange={(e) => {
