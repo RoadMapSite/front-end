@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { Bell, Loader2, Trash2, Users } from "lucide-react";
 import {
   deleteAdminWaitlist,
   fetchAdminWaitlists,
   patchAdminWaitlistStatus,
   type Waitlist,
+  type WaitlistGender,
   type WaitlistStatus,
 } from "@/api/adminWaitlists";
 import { formatPhoneDisplay } from "@/lib/formatPhoneDisplay";
@@ -18,6 +19,9 @@ type TabId =
   | "SEM2_HI"
   | "SUMMER"
   | "WINTER";
+
+/** 성별 필터: 전체는 쿼리 생략 */
+type GenderFilter = "ALL" | WaitlistGender;
 
 const TABS = [
   { id: "SEM1_N" as const, label: "1학기 N수관", season: "SEMESTER_1" as const, branch: "N" as const },
@@ -61,6 +65,16 @@ const STATUS_STYLES: Record<
   },
 };
 
+function formatGenderLabel(gender?: WaitlistGender): ReactNode {
+  if (gender === "MALE") {
+    return <span className="text-sm font-medium text-blue-500">남성</span>;
+  }
+  if (gender === "FEMALE") {
+    return <span className="text-sm font-medium text-rose-500">여성</span>;
+  }
+  return <span className="text-sm text-slate-400">—</span>;
+}
+
 function formatRegisteredAt(iso: string): string {
   if (!iso) return "—";
   const d = new Date(iso);
@@ -73,6 +87,7 @@ function formatRegisteredAt(iso: string): string {
 
 export default function WaitlistsPage() {
   const [activeTab, setActiveTab] = useState<TabId>("SEM1_N");
+  const [selectedGender, setSelectedGender] = useState<GenderFilter>("ALL");
   const [items, setItems] = useState<Waitlist[]>([]);
   const [loadState, setLoadState] = useState<"idle" | "loading" | "error">("idle");
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -119,10 +134,14 @@ export default function WaitlistsPage() {
       setLoadError(null);
     }
     try {
-      const data = await fetchAdminWaitlists(
+      const baseParams =
         tab.branch === null
           ? { season: tab.season }
-          : { season: tab.season, branch: tab.branch }
+          : { season: tab.season, branch: tab.branch };
+      const data = await fetchAdminWaitlists(
+        selectedGender === "ALL"
+          ? baseParams
+          : { ...baseParams, gender: selectedGender }
       );
       const list = data.waitlists ?? [];
       setItems(list);
@@ -139,7 +158,7 @@ export default function WaitlistsPage() {
         );
       }
     }
-  }, [activeTab, showToast]);
+  }, [activeTab, selectedGender, showToast]);
 
   useEffect(() => {
     void loadWaitlists();
@@ -231,9 +250,38 @@ export default function WaitlistsPage() {
           </div>
           <h1 className="text-2xl font-bold text-slate-800">대기열 관리</h1>
         </div>
-        <p className="mt-2 text-slate-600">
-          등록 대기 학생들을 조회하고 상태를 최신화합니다.
-        </p>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <p className="min-w-0 flex-1 text-slate-600">
+            등록 대기 학생들을 조회하고 상태를 최신화합니다.
+          </p>
+          <div className="flex shrink-0 items-center gap-2">
+            <label
+              htmlFor="waitlist-gender-filter"
+              className="whitespace-nowrap text-sm font-medium text-slate-600"
+            >
+              성별
+            </label>
+            <select
+              id="waitlist-gender-filter"
+              value={selectedGender}
+              onChange={(e) =>
+                setSelectedGender(e.target.value as GenderFilter)
+              }
+              disabled={
+                loadState === "loading" ||
+                modalOpen ||
+                isDeleteModalOpen ||
+                updatingWaitlistId !== null ||
+                deletingWaitlistId !== null
+              }
+              className="min-w-[8rem] cursor-pointer rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm leading-tight text-slate-800 shadow-sm focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <option value="ALL">전체</option>
+              <option value="MALE">남성</option>
+              <option value="FEMALE">여성</option>
+            </select>
+          </div>
+        </div>
         {loadState === "loading" && (
           <div
             className="mt-4 flex min-h-[3.5rem] flex-col items-center justify-center gap-2.5"
@@ -307,6 +355,9 @@ export default function WaitlistsPage() {
                 이름
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
+                성별
+              </th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                 나이
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
@@ -324,7 +375,7 @@ export default function WaitlistsPage() {
           <tbody>
             {loadState === "loading" ? (
               <tr>
-                <td colSpan={8} className="p-0 align-middle">
+                <td colSpan={9} className="p-0 align-middle">
                   <div className="flex min-h-[min(42vh,18rem)] flex-col items-center justify-center gap-4 px-6 py-12">
                     <Loader2
                       className="h-10 w-10 animate-spin text-slate-700"
@@ -340,7 +391,7 @@ export default function WaitlistsPage() {
             ) : items.length === 0 ? (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={9}
                   className="px-6 py-16 text-center text-sm text-slate-500"
                 >
                   해당 구간에 등록된 대기자가 없습니다.
@@ -381,6 +432,7 @@ export default function WaitlistsPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-800">{item.name}</td>
+                    <td className="px-6 py-4">{formatGenderLabel(item.gender)}</td>
                     <td className="px-6 py-4 text-sm text-slate-600">{item.age}</td>
                     <td className="px-6 py-4 text-sm text-slate-600">
                       {formatPhoneDisplay(item.phoneNumber)}

@@ -6,12 +6,15 @@ export type WaitlistBranch = "N" | "Hi-end";
 
 export type WaitlistStatus = "WAITING" | "CONTACTED" | "REGISTERED" | "CANCELED";
 
+export type WaitlistGender = "MALE" | "FEMALE";
+
 export interface Waitlist {
   waitlistId: number;
   waitingNumber: number;
   branch: WaitlistBranch | null;
   season: WaitlistSeason;
   name: string;
+  gender?: WaitlistGender;
   age: number;
   phoneNumber: string;
   /** 기존 재원생 여부 (미제공 시 undefined) */
@@ -28,10 +31,12 @@ export type FetchAdminWaitlistsParams = {
   season: WaitlistSeason;
   /** 학기 탭만 전달. 여름/겨울 캠프는 생략하여 쿼리에 포함하지 않음 */
   branch?: WaitlistBranch;
+  /** 전체 조회 시 생략. MALE/FEMALE만 쿼리에 포함 */
+  gender?: WaitlistGender;
 };
 
 /**
- * season 필수. branch는 학기 탭일 때만 URLSearchParams에 포함.
+ * season 필수. branch는 학기 탭일 때만. gender는 MALE/FEMALE일 때만.
  */
 export function buildAdminWaitlistsSearchParams(
   params: FetchAdminWaitlistsParams
@@ -40,6 +45,9 @@ export function buildAdminWaitlistsSearchParams(
   search.set("season", params.season);
   if (params.branch !== undefined) {
     search.set("branch", params.branch);
+  }
+  if (params.gender === "MALE" || params.gender === "FEMALE") {
+    search.set("gender", params.gender);
   }
   return search;
 }
