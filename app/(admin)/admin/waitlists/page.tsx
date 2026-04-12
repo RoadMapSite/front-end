@@ -1,8 +1,17 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
-import { Bell, Loader2, Trash2, Users } from "lucide-react";
 import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  type FormEvent,
+  type ReactNode,
+} from "react";
+import { Bell, Loader2, Plus, Trash2, Users, X } from "lucide-react";
+import {
+  buildAdminWaitlistCreateBody,
+  createAdminWaitlist,
   deleteAdminWaitlist,
   fetchAdminWaitlists,
   patchAdminWaitlistStatus,
@@ -106,6 +115,46 @@ function formatRegisteredAt(iso: string): string {
   return `${y}-${m}-${day}`;
 }
 
+/** 로컬 기준 오늘 날짜 `YYYY-MM-DD` (직접 추가 모달 기본값) */
+function formatLocalDateYYYYMMDD(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+type DirectAddFieldKey =
+  | "name"
+  | "phone"
+  | "registeredAt"
+  | "gender"
+  | "isExisting"
+  | "age"
+  | "school"
+  | "grade";
+
+function directAddInputClass(hasError: boolean): string {
+  return `w-full rounded-lg border px-3 py-2 text-sm text-slate-800 shadow-sm focus:outline-none disabled:opacity-60 ${
+    hasError
+      ? "border-red-500 ring-1 ring-red-500 focus:border-red-500 focus:ring-red-500"
+      : "border-slate-200 focus:border-slate-400 focus:ring-1 focus:ring-slate-200"
+  }`;
+}
+
+function directAddSelectClass(hasError: boolean): string {
+  return `w-full cursor-pointer rounded-lg border bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:outline-none disabled:opacity-60 ${
+    hasError
+      ? "border-red-500 ring-1 ring-red-500 focus:border-red-500 focus:ring-red-500"
+      : "border-slate-200 focus:border-slate-400 focus:ring-1 focus:ring-slate-200"
+  }`;
+}
+
+function directAddRadioGroupClass(hasError: boolean): string {
+  return hasError
+    ? "rounded-lg border border-red-500 bg-red-50/40 p-3 ring-1 ring-red-500"
+    : "";
+}
+
 export default function WaitlistsPage() {
   const [activeTab, setActiveTab] = useState<TabId>("SEM1_N");
   const [selectedGender, setSelectedGender] = useState<GenderFilter>("ALL");
@@ -126,6 +175,23 @@ export default function WaitlistsPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastExiting, setToastExiting] = useState(false);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [isDirectAddOpen, setIsDirectAddOpen] = useState(false);
+  const [addName, setAddName] = useState("");
+  const [addPhone, setAddPhone] = useState("");
+  const [addRegisteredAt, setAddRegisteredAt] = useState(() =>
+    formatLocalDateYYYYMMDD(new Date())
+  );
+  const [addGender, setAddGender] = useState<"" | WaitlistGender>("");
+  const [addIsExisting, setAddIsExisting] = useState<boolean | null>(null);
+  const [addAge, setAddAge] = useState("");
+  const [addSchool, setAddSchool] = useState("");
+  const [addGrade, setAddGrade] = useState("");
+  const [addSubmitting, setAddSubmitting] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+  const [addFieldErrors, setAddFieldErrors] = useState<
+    Partial<Record<DirectAddFieldKey, boolean>>
+  >({});
 
   const tableVariant = waitlistTableVariant(activeTab);
   const tableColSpan = WAITLIST_TABLE_COL_SPAN[tableVariant];
@@ -149,6 +215,30 @@ export default function WaitlistsPage() {
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     };
   }, []);
+
+  const resetDirectAddForm = useCallback(() => {
+    setAddName("");
+    setAddPhone("");
+    setAddRegisteredAt(formatLocalDateYYYYMMDD(new Date()));
+    setAddGender("");
+    setAddIsExisting(null);
+    setAddAge("");
+    setAddSchool("");
+    setAddGrade("");
+    setAddError(null);
+    setAddFieldErrors({});
+  }, []);
+
+  const openDirectAddModal = () => {
+    resetDirectAddForm();
+    setIsDirectAddOpen(true);
+  };
+
+  const closeDirectAddModal = () => {
+    if (addSubmitting) return;
+    setIsDirectAddOpen(false);
+    resetDirectAddForm();
+  };
 
   const loadWaitlists = useCallback(async (opts?: { silent?: boolean }) => {
     const tab = TABS.find((t) => t.id === activeTab)!;
@@ -187,6 +277,102 @@ export default function WaitlistsPage() {
   useEffect(() => {
     void loadWaitlists();
   }, [loadWaitlists]);
+
+  const handleDirectAddSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setAddError(null);
+    setAddFieldErrors({});
+    const tab = TABS.find((t) => t.id === activeTab)!;
+    const variant = waitlistTableVariant(activeTab);
+
+    if (!addName.trim()) {
+      setAddError("이름을 입력해 주세요.");
+      setAddFieldErrors({ name: true });
+      return;
+    }
+    if (!addPhone.trim()) {
+      setAddError("연락처를 입력해 주세요.");
+      setAddFieldErrors({ phone: true });
+      return;
+    }
+    if (!addRegisteredAt.trim()) {
+      setAddError("등록 날짜를 선택해주세요.");
+      setAddFieldErrors({ registeredAt: true });
+      return;
+    }
+    if (addGender !== "MALE" && addGender !== "FEMALE") {
+      setAddError("성별을 선택해 주세요.");
+      setAddFieldErrors({ gender: true });
+      return;
+    }
+    if (addIsExisting !== true && addIsExisting !== false) {
+      setAddError("기존 재원 여부를 선택해 주세요.");
+      setAddFieldErrors({ isExisting: true });
+      return;
+    }
+
+    if (variant === "n_branch") {
+      const ageNum = parseInt(addAge.trim(), 10);
+      if (Number.isNaN(ageNum) || ageNum < 1 || ageNum > 99) {
+        setAddError("올바른 나이(1~99)를 입력해 주세요.");
+        setAddFieldErrors({ age: true });
+        return;
+      }
+    } else if (variant === "hi_end") {
+      if (!addSchool.trim()) {
+        setAddError("학교를 입력해 주세요.");
+        setAddFieldErrors({ school: true });
+        return;
+      }
+      if (!addGrade.trim()) {
+        setAddError("학년을 선택해 주세요.");
+        setAddFieldErrors({ grade: true });
+        return;
+      }
+    } else {
+      const ageNum = parseInt(addAge.trim(), 10);
+      if (Number.isNaN(ageNum) || ageNum < 1 || ageNum > 99) {
+        setAddError("올바른 나이(1~99)를 입력해 주세요.");
+        setAddFieldErrors({ age: true });
+        return;
+      }
+      if (!addSchool.trim()) {
+        setAddError("학교를 입력해 주세요.");
+        setAddFieldErrors({ school: true });
+        return;
+      }
+      if (!addGrade.trim()) {
+        setAddError("학년을 선택해 주세요.");
+        setAddFieldErrors({ grade: true });
+        return;
+      }
+    }
+
+    const body = buildAdminWaitlistCreateBody(variant, tab.season, tab.branch, {
+      name: addName,
+      phoneNumber: addPhone,
+      registeredAt: addRegisteredAt.trim(),
+      gender: addGender,
+      isExisting: addIsExisting,
+      ageInput: addAge,
+      school: addSchool,
+      grade: addGrade,
+    });
+
+    setAddSubmitting(true);
+    try {
+      await createAdminWaitlist(body);
+      setIsDirectAddOpen(false);
+      resetDirectAddForm();
+      showToast("대기 등록이 완료되었습니다.");
+      await loadWaitlists({ silent: true });
+    } catch (err) {
+      setAddFieldErrors({});
+      setAddError(err instanceof Error ? err.message : "등록에 실패했습니다.");
+    } finally {
+      setAddSubmitting(false);
+    }
+  };
 
   const handleStatusSelectChange = (student: Waitlist, newStatus: WaitlistStatus) => {
     if (student.status === newStatus) return;
@@ -265,6 +451,14 @@ export default function WaitlistsPage() {
     }
   };
 
+  const interactionsLocked =
+    loadState === "loading" ||
+    modalOpen ||
+    isDeleteModalOpen ||
+    updatingWaitlistId !== null ||
+    deletingWaitlistId !== null ||
+    isDirectAddOpen;
+
   return (
     <div className="p-8">
       <div className="mb-6">
@@ -291,13 +485,7 @@ export default function WaitlistsPage() {
               onChange={(e) =>
                 setSelectedGender(e.target.value as GenderFilter)
               }
-              disabled={
-                loadState === "loading" ||
-                modalOpen ||
-                isDeleteModalOpen ||
-                updatingWaitlistId !== null ||
-                deletingWaitlistId !== null
-              }
+              disabled={interactionsLocked}
               className="min-w-[8rem] cursor-pointer rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm leading-tight text-slate-800 shadow-sm focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <option value="ALL">전체</option>
@@ -336,13 +524,7 @@ export default function WaitlistsPage() {
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
-            disabled={
-              loadState === "loading" ||
-              modalOpen ||
-              isDeleteModalOpen ||
-              updatingWaitlistId !== null ||
-              deletingWaitlistId !== null
-            }
+            disabled={interactionsLocked}
             className={`
               flex-1 min-w-0 cursor-pointer rounded-md px-4 py-2.5 text-sm font-medium
               transition-all duration-200 ease-out
@@ -439,6 +621,7 @@ export default function WaitlistsPage() {
                   updatingWaitlistId === item.waitlistId ||
                   modalOpen ||
                   isDeleteModalOpen ||
+                  isDirectAddOpen ||
                   deletingWaitlistId === item.waitlistId;
                 return (
                   <tr
@@ -541,6 +724,352 @@ export default function WaitlistsPage() {
           </tbody>
         </table>
       </div>
+
+      <div className="mt-4 flex justify-center">
+        <button
+          type="button"
+          onClick={openDirectAddModal}
+          disabled={interactionsLocked}
+          className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <Plus className="h-4 w-4 shrink-0 text-slate-900" strokeWidth={2} aria-hidden />
+          직접 추가
+        </button>
+      </div>
+
+      {isDirectAddOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-[logo-transition-fade-in_0.25s_ease-out]"
+          onClick={closeDirectAddModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="waitlist-direct-add-modal-title"
+        >
+          <div
+            className="max-h-[min(90vh,40rem)] w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-xl animate-[confirm-modal-appear_0.6s_ease-out]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+              <h2
+                id="waitlist-direct-add-modal-title"
+                className="text-lg font-bold text-slate-900"
+              >
+                대기 학생 직접 추가
+              </h2>
+              <button
+                type="button"
+                onClick={closeDirectAddModal}
+                disabled={addSubmitting}
+                className="cursor-pointer rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="닫기"
+              >
+                <X className="h-5 w-5" strokeWidth={2} aria-hidden />
+              </button>
+            </div>
+            <form
+              onSubmit={(e) => void handleDirectAddSubmit(e)}
+              className="max-h-[min(75vh,34rem)] space-y-4 overflow-y-auto px-6 py-5"
+            >
+              <div>
+                <label
+                  htmlFor="direct-add-name"
+                  className="mb-1.5 block text-sm font-medium text-slate-700"
+                >
+                  이름
+                </label>
+                <input
+                  id="direct-add-name"
+                  type="text"
+                  value={addName}
+                  onChange={(e) => {
+                    setAddName(e.target.value);
+                    setAddFieldErrors((p) => ({ ...p, name: false }));
+                  }}
+                  autoComplete="name"
+                  className={directAddInputClass(!!addFieldErrors.name)}
+                  disabled={addSubmitting}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="direct-add-phone"
+                  className="mb-1.5 block text-sm font-medium text-slate-700"
+                >
+                  연락처
+                </label>
+                <input
+                  id="direct-add-phone"
+                  type="tel"
+                  inputMode="tel"
+                  value={addPhone}
+                  onChange={(e) => {
+                    setAddPhone(e.target.value);
+                    setAddFieldErrors((p) => ({ ...p, phone: false }));
+                  }}
+                  autoComplete="tel"
+                  className={directAddInputClass(!!addFieldErrors.phone)}
+                  disabled={addSubmitting}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="direct-add-registered-at"
+                  className="mb-1.5 block text-sm font-medium text-slate-700"
+                >
+                  등록 날짜
+                </label>
+                <input
+                  id="direct-add-registered-at"
+                  type="date"
+                  value={addRegisteredAt}
+                  onChange={(e) => {
+                    setAddRegisteredAt(e.target.value);
+                    setAddFieldErrors((p) => ({ ...p, registeredAt: false }));
+                  }}
+                  className={directAddInputClass(!!addFieldErrors.registeredAt)}
+                  disabled={addSubmitting}
+                  aria-required
+                />
+              </div>
+              <fieldset className="space-y-2">
+                <legend className="mb-1.5 text-sm font-medium text-slate-700">
+                  성별
+                </legend>
+                <div
+                  className={`flex flex-wrap gap-4 ${directAddRadioGroupClass(!!addFieldErrors.gender)}`}
+                >
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="radio"
+                      name="direct-add-gender"
+                      checked={addGender === "MALE"}
+                      onChange={() => {
+                        setAddGender("MALE");
+                        setAddFieldErrors((p) => ({ ...p, gender: false }));
+                      }}
+                      disabled={addSubmitting}
+                      className="h-4 w-4 cursor-pointer border-slate-300 text-slate-800 focus:ring-slate-400"
+                    />
+                    남성
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="radio"
+                      name="direct-add-gender"
+                      checked={addGender === "FEMALE"}
+                      onChange={() => {
+                        setAddGender("FEMALE");
+                        setAddFieldErrors((p) => ({ ...p, gender: false }));
+                      }}
+                      disabled={addSubmitting}
+                      className="h-4 w-4 cursor-pointer border-slate-300 text-slate-800 focus:ring-slate-400"
+                    />
+                    여성
+                  </label>
+                </div>
+              </fieldset>
+              <fieldset className="space-y-2">
+                <legend className="mb-1.5 text-sm font-medium text-slate-700">
+                  기존 재원 여부
+                </legend>
+                <div
+                  className={`flex flex-wrap gap-4 ${directAddRadioGroupClass(!!addFieldErrors.isExisting)}`}
+                >
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="radio"
+                      name="direct-add-existing"
+                      checked={addIsExisting === true}
+                      onChange={() => {
+                        setAddIsExisting(true);
+                        setAddFieldErrors((p) => ({ ...p, isExisting: false }));
+                      }}
+                      disabled={addSubmitting}
+                      className="h-4 w-4 cursor-pointer border-slate-300 text-slate-800 focus:ring-slate-400"
+                    />
+                    O
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="radio"
+                      name="direct-add-existing"
+                      checked={addIsExisting === false}
+                      onChange={() => {
+                        setAddIsExisting(false);
+                        setAddFieldErrors((p) => ({ ...p, isExisting: false }));
+                      }}
+                      disabled={addSubmitting}
+                      className="h-4 w-4 cursor-pointer border-slate-300 text-slate-800 focus:ring-slate-400"
+                    />
+                    X
+                  </label>
+                </div>
+              </fieldset>
+
+              {tableVariant === "n_branch" && (
+                <div>
+                  <label
+                    htmlFor="direct-add-age"
+                    className="mb-1.5 block text-sm font-medium text-slate-700"
+                  >
+                    나이
+                  </label>
+                  <input
+                    id="direct-add-age"
+                    type="number"
+                    min={1}
+                    max={99}
+                    value={addAge}
+                    onChange={(e) => {
+                      setAddAge(e.target.value);
+                      setAddFieldErrors((p) => ({ ...p, age: false }));
+                    }}
+                    className={directAddInputClass(!!addFieldErrors.age)}
+                    disabled={addSubmitting}
+                  />
+                </div>
+              )}
+
+              {tableVariant === "hi_end" && (
+                <>
+                  <div>
+                    <label
+                      htmlFor="direct-add-school"
+                      className="mb-1.5 block text-sm font-medium text-slate-700"
+                    >
+                      학교
+                    </label>
+                    <input
+                      id="direct-add-school"
+                      type="text"
+                      value={addSchool}
+                      onChange={(e) => {
+                        setAddSchool(e.target.value);
+                        setAddFieldErrors((p) => ({ ...p, school: false }));
+                      }}
+                      className={directAddInputClass(!!addFieldErrors.school)}
+                      disabled={addSubmitting}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="direct-add-grade"
+                      className="mb-1.5 block text-sm font-medium text-slate-700"
+                    >
+                      학년
+                    </label>
+                    <select
+                      id="direct-add-grade"
+                      value={addGrade}
+                      onChange={(e) => {
+                        setAddGrade(e.target.value);
+                        setAddFieldErrors((p) => ({ ...p, grade: false }));
+                      }}
+                      disabled={addSubmitting}
+                      className={directAddSelectClass(!!addFieldErrors.grade)}
+                    >
+                      <option value="">학년 선택</option>
+                      <option value="2학년">2학년</option>
+                      <option value="3학년">3학년</option>
+                    </select>
+                  </div>
+                </>
+              )}
+
+              {tableVariant === "camp" && (
+                <>
+                  <div>
+                    <label
+                      htmlFor="direct-add-age-camp"
+                      className="mb-1.5 block text-sm font-medium text-slate-700"
+                    >
+                      나이
+                    </label>
+                    <input
+                      id="direct-add-age-camp"
+                      type="number"
+                      min={1}
+                      max={99}
+                      value={addAge}
+                      onChange={(e) => {
+                        setAddAge(e.target.value);
+                        setAddFieldErrors((p) => ({ ...p, age: false }));
+                      }}
+                      className={directAddInputClass(!!addFieldErrors.age)}
+                      disabled={addSubmitting}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="direct-add-school-camp"
+                      className="mb-1.5 block text-sm font-medium text-slate-700"
+                    >
+                      학교
+                    </label>
+                    <input
+                      id="direct-add-school-camp"
+                      type="text"
+                      value={addSchool}
+                      onChange={(e) => {
+                        setAddSchool(e.target.value);
+                        setAddFieldErrors((p) => ({ ...p, school: false }));
+                      }}
+                      className={directAddInputClass(!!addFieldErrors.school)}
+                      disabled={addSubmitting}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="direct-add-grade-camp"
+                      className="mb-1.5 block text-sm font-medium text-slate-700"
+                    >
+                      학년
+                    </label>
+                    <select
+                      id="direct-add-grade-camp"
+                      value={addGrade}
+                      onChange={(e) => {
+                        setAddGrade(e.target.value);
+                        setAddFieldErrors((p) => ({ ...p, grade: false }));
+                      }}
+                      disabled={addSubmitting}
+                      className={directAddSelectClass(!!addFieldErrors.grade)}
+                    >
+                      <option value="">학년 선택</option>
+                      <option value="2학년">2학년</option>
+                      <option value="3학년">3학년</option>
+                    </select>
+                  </div>
+                </>
+              )}
+
+              {addError && (
+                <p className="text-sm text-red-600" role="alert">
+                  {addError}
+                </p>
+              )}
+
+              <div className="flex gap-3 border-t border-slate-100 pt-4">
+                <button
+                  type="submit"
+                  disabled={addSubmitting}
+                  className="flex-1 cursor-pointer rounded-xl bg-slate-800 px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {addSubmitting ? "등록 중…" : "등록"}
+                </button>
+                <button
+                  type="button"
+                  onClick={closeDirectAddModal}
+                  disabled={addSubmitting}
+                  className="flex-1 cursor-pointer rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  취소
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {selectedStudent && pendingStatus && (
         <div

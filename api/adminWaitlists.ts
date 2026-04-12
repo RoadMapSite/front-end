@@ -1,4 +1,4 @@
-import { apiDelete, apiGet, apiPatch } from "@/api/apiClient";
+import { apiDelete, apiGet, apiPatch, apiPost } from "@/api/apiClient";
 
 export type WaitlistSeason = "SEMESTER_1" | "SEMESTER_2" | "SUMMER" | "WINTER";
 
@@ -96,6 +96,79 @@ export async function fetchAdminWaitlists(
   return {
     waitlists: raw.map((w) => normalizeWaitlist(w as Waitlist & Record<string, unknown>)),
   };
+}
+
+/** 탭 유형 — 사용자 대기 신청(`/v1/user/waitlists`)과 동일한 필드 규칙으로 본문 구성 */
+export type AdminWaitlistCreateVariant = "n_branch" | "hi_end" | "camp";
+
+export type AdminWaitlistCreateFormInput = {
+  name: string;
+  phoneNumber: string;
+  /** `YYYY-MM-DD` (시간 없음) */
+  registeredAt: string;
+  gender: WaitlistGender;
+  isExisting: boolean;
+  ageInput?: string;
+  school?: string;
+  grade?: string;
+};
+
+/**
+ * POST /v1/admin/waitlists 본문.
+ * - 공통: `registeredAt` — `YYYY-MM-DD` 문자열(시간 없음).
+ * - 학기 탭: `branch` 포함. 캠프: `branch` 생략.
+ * - N: `age`만. 하이엔드: `school`, `grade`. 캠프: `age` + `school` + `grade`.
+ */
+export function buildAdminWaitlistCreateBody(
+  variant: AdminWaitlistCreateVariant,
+  season: WaitlistSeason,
+  branch: WaitlistBranch | null,
+  data: AdminWaitlistCreateFormInput
+): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    season,
+    name: data.name.trim(),
+    phoneNumber: data.phoneNumber.replace(/\D/g, ""),
+    registeredAt: data.registeredAt.trim(),
+    gender: data.gender,
+    isExisting: data.isExisting,
+  };
+  if (branch === "N" || branch === "Hi-end") {
+    body.branch = branch;
+  }
+
+  if (variant === "n_branch") {
+    const age = parseInt(data.ageInput?.trim() ?? "", 10);
+    if (!Number.isNaN(age)) body.age = age;
+    return body;
+  }
+
+  if (variant === "hi_end") {
+    const school = data.school?.trim() ?? "";
+    if (school) body.school = school;
+    const grade = data.grade?.trim() ?? "";
+    if (grade) body.grade = grade;
+    return body;
+  }
+
+  const age = parseInt(data.ageInput?.trim() ?? "", 10);
+  if (!Number.isNaN(age)) body.age = age;
+  const school = data.school?.trim() ?? "";
+  if (school) body.school = school;
+  const grade = data.grade?.trim() ?? "";
+  if (grade) body.grade = grade;
+  return body;
+}
+
+export async function createAdminWaitlist(
+  body: Record<string, unknown>
+): Promise<unknown> {
+  return apiPost("/v1/admin/waitlists", body, {
+    useRelativePath: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 }
 
 export interface PatchWaitlistStatusResponse {
