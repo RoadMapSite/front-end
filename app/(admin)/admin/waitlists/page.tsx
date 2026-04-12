@@ -56,6 +56,9 @@ const WAITLIST_TABLE_COL_SPAN: Record<WaitlistTableVariant, number> = {
   camp: 11,
 };
 
+const ITEMS_PER_PAGE = 10;
+const PAGE_PER_BLOCK = 10;
+
 function formatWaitlistCell(value: string | null | undefined): ReactNode {
   const s = value?.trim();
   if (!s) return <span className="text-sm text-slate-400">—</span>;
@@ -145,6 +148,7 @@ export default function WaitlistsPage() {
   const [activeTab, setActiveTab] = useState<TabId>("SEM1_N");
   const [selectedGender, setSelectedGender] = useState<GenderFilter>("ALL");
   const [items, setItems] = useState<Waitlist[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [loadState, setLoadState] = useState<"idle" | "loading" | "error">("idle");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [updatingWaitlistId, setUpdatingWaitlistId] = useState<number | null>(null);
@@ -180,6 +184,22 @@ export default function WaitlistsPage() {
   const tableVariant = waitlistTableVariant(activeTab);
   const tableColSpan = WAITLIST_TABLE_COL_SPAN[tableVariant];
 
+  const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+  const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
+  const currentItems = items.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+  const currentBlock = Math.ceil(currentPage / PAGE_PER_BLOCK);
+  const startPage =
+    totalPages <= 10 ? 1 : (currentBlock - 1) * PAGE_PER_BLOCK + 1;
+  const endPage =
+    totalPages <= 10
+      ? totalPages
+      : Math.min(startPage + PAGE_PER_BLOCK - 1, totalPages);
+  const pageNumbersInView =
+    totalPages === 0 || endPage < startPage
+      ? []
+      : Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+
   const showToast = useCallback((message: string) => {
     if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     setToastExiting(false);
@@ -199,6 +219,16 @@ export default function WaitlistsPage() {
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
+
+  useEffect(() => {
+    const tp = Math.ceil(items.length / ITEMS_PER_PAGE);
+    if (tp === 0) return;
+    setCurrentPage((p) => (p > tp ? tp : p));
+  }, [items.length]);
 
   const resetDirectAddForm = useCallback(() => {
     setAddName("");
@@ -601,7 +631,7 @@ export default function WaitlistsPage() {
                 </td>
               </tr>
             ) : (
-              items.map((item) => {
+              currentItems.map((item) => {
                 const rowBusy =
                   updatingWaitlistId === item.waitlistId ||
                   modalOpen ||
@@ -709,6 +739,52 @@ export default function WaitlistsPage() {
           </tbody>
         </table>
       </div>
+
+      {loadState === "idle" && totalPages > 0 && (
+        <nav
+          className="mt-4 flex flex-wrap items-center justify-center gap-2"
+          aria-label="대기 목록 페이지"
+        >
+          {totalPages >= 11 && (
+            <button
+              type="button"
+              onClick={() => setCurrentPage(startPage - 1)}
+              disabled={interactionsLocked || currentBlock === 1}
+              aria-label="이전 블록"
+              className="inline-flex min-w-[2.25rem] cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {"<"}
+            </button>
+          )}
+          {pageNumbersInView.map((pageNum) => (
+            <button
+              key={pageNum}
+              type="button"
+              onClick={() => setCurrentPage(pageNum)}
+              disabled={interactionsLocked}
+              aria-current={pageNum === currentPage ? "page" : undefined}
+              className={`min-w-[2.25rem] cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                pageNum === currentPage
+                  ? "bg-slate-800 text-white ring-1 ring-slate-800"
+                  : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              {pageNum}
+            </button>
+          ))}
+          {totalPages >= 11 && (
+            <button
+              type="button"
+              onClick={() => setCurrentPage(endPage + 1)}
+              disabled={interactionsLocked || endPage === totalPages}
+              aria-label="다음 블록"
+              className="inline-flex min-w-[2.25rem] cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {">"}
+            </button>
+          )}
+        </nav>
+      )}
 
       <div className="mt-4 flex justify-center">
         <button
