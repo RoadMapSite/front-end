@@ -68,6 +68,14 @@ export default function AboutTeacherPage() {
       photo: "/images/about/나경T.jpg",
       accent: "bg-emerald-600",
     },
+    {
+      role: "관리 T",
+      namePart: "황예원",
+      titlePart: "선생님",
+      careers: ["로드맵 관리 시스템 매니저", "하이엔드관 관리 주임"],
+      photo: "/images/about/예원 T.jpg",
+      accent: "bg-emerald-600",
+    },
   ];
 
   return (
